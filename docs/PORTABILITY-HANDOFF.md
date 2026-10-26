@@ -12,6 +12,17 @@ runtime should share a package where possible: do not create a permanent package
 for every TV model. Q74T-5.5 and RGB-5.5 currently have identical application DLLs;
 their separate metadata/test artifacts are for safe first-owner trials.
 
+**Public-alpha preparation:** source now targets numeric package 1.1.0 and runtime
+`tizenhalo-1.1.0-alpha.1`. The eight Python tests plus full build/host suite pass.
+`docs/TESTING.md`, `docs/releases/v1.1.0-alpha.1.md` and a compatibility issue form
+are prepared. After a clean source commit, `python3 tools/prepare-prerelease.py`
+verifies the three app TPKs plus the separate probe, checks factory config/runtime
+identity, and creates an allowlisted kit under `dist/v1.1.0-alpha.1/` with source
+commit, checksums and ZIP. It refuses a dirty source tree or an existing output.
+No push/tag/release publication is performed. The online release was checked:
+only stable v1.0.0 exists. The owner's last request was about readiness and the
+value of a public test release, not an explicit instruction to publish it yet.
+
 ## User objective and present boundary
 
 Long term: cover as many Samsung/Tizen TVs as evidence permits, sharing settings,
@@ -102,7 +113,7 @@ bash build.sh all
 
 `build.sh all` validates the table, runs catalogue/profile guards, compiles all three targets,
 runs host tests, the UDP interpolation check, the browser layout test and the
-package verifier. It builds profile-suffixed TPKs and a Q74T alias `dist/TizenHalo-1.0.0.tpk`. The current checkpoint is
+package verifier. It builds profile-suffixed TPKs and a Q74T alias `dist/TizenHalo-1.1.0.tpk`. The current checkpoint is
 an experimental portability build, not a new multi-TV support release.
 
 In this workspace the existing NuGet cache is at

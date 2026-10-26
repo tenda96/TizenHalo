@@ -12,6 +12,13 @@ Verma, ported to the Tizen 5.5 firmware of the 2020 line-up.
 > libraries that may be missing or different on other models and firmware versions. If you try it on
 > another TV, please open an issue and say what happened, whether it worked or not.
 
+> [!NOTE]
+> **Development alpha: v1.1.0-alpha.1.** The new RGB/S84F compatibility profiles
+> are compiled and checked offline, but this revision has no on-TV validation yet.
+> Read [TESTING.md](docs/TESTING.md) to choose a test package and report results.
+> [Stable v1.0.0](https://github.com/tenda96/TizenHalo/releases/tag/v1.0.0) remains
+> the Q74T baseline; the reference behavior and limitations below describe that setup.
+
 ## What it does
 
 - Runs entirely on the TV. You adjust it from your phone: the app menu shows a QR code to the settings page.

@@ -1,0 +1,69 @@
+name: TV compatibility test
+description: Report an experimental TizenHalo result, including failures
+title: "[Compatibility] MODEL / FIRMWARE / PROFILE"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing. Please report exactly what worked; menu startup is separate from capture.
+        Do not attach certificates, passwords, firmware images or proprietary libraries publicly.
+  - type: input
+    id: release
+    attributes:
+      label: Release and complete asset filename
+      placeholder: v1.1.0-alpha.1 / TizenHalo-1.1.0-rgb-55.tpk
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Exact TV model / SKU
+      placeholder: Copy the full model identifier from the TV information page
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+    validations:
+      required: true
+  - type: input
+    id: tizen
+    attributes:
+      label: Installed Tizen version
+      description: Enter unknown if unavailable; do not infer it from the model year.
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Furthest stage reached
+      options:
+        - Installation rejected
+        - Installed but app closes or does not open
+        - Menu opens but service is not ready
+        - Service ready but no useful LED colors
+        - Colors work with limitations
+        - Colors and basic controls work
+        - Read-only probe report collected
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Installer, source and short test
+      description: Installer/certificate method; HDMI, TV or named app; video identity/FPS if known; duration; LED count. Keep one source per comparison.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed behavior and rates
+      description: Colors, mapping, stutter, output off/on, standby and icon restart. Separate capture/measurement refresh from LED send Hz.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Exact error or diagnostic attachment
+      description: Attach /api/status or the probe JSON if available; otherwise paste the exact install/startup error. Mask private addresses/identifiers.

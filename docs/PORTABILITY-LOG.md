@@ -97,3 +97,26 @@ Next: short Q74T regression and opted-in S84F/RGB owner reports. Continue Q80A
 static contract review only with additional evidence; its full-frame profile is
 still absent. RU7100/MuseL stays blocked on new key or owner-library evidence.
 Read `PORTABILITY-HANDOFF.md` and `BUILD-PROFILES.md` before changing package policy.
+
+## 2026-10-26 — public alpha prepared locally
+
+- User asked whether unvalidated profiles could be offered as public test builds.
+  Checked GitHub: only stable `v1.0.0` is published, with its reference TPK. No
+  upstream release/tag/push was created in this step.
+- Prepared `v1.1.0-alpha.1`, numeric Tizen version 1.1.0 and distinct runtime/log
+  identity `tizenhalo-1.1.0-alpha.1`, so reports cannot be confused with stable 1.0.0.
+- Added tester/package-selection instructions, stable rollback link, short SDR
+  protocol, exact report fields and startup/version checks after a full restart.
+  Marked all profiles unvalidated for this alpha revision, including Q74T regression.
+- Added release notes and a compatibility issue form; it parses as YAML with eight
+  distinct data fields. A plain-text issue fallback is also in the instructions.
+- Added local-only allowlist packager: requires clean committed source, validates
+  profile-aware package digests, factory settings and compiled alpha identity,
+  verifies the existing diagnostic, records source commit and SHA256SUMS, then
+  produces a small test-kit ZIP. No publication or credentials are needed.
+- Verification: `bash build.sh all` PASS with eight Python tests, all three app
+  builds with zero warnings/errors, package checks, header/profile/migration
+  regressions, loopback interpolation and offline layout-editor test.
+- Next publication step, if requested: push the reviewed source and exact tag,
+  create a GitHub **pre-release** with these assets/notes, retain stable v1.0.0,
+  then collect owner reports before any support promotion.

@@ -66,13 +66,15 @@ without its generated matching manifest is rejected.
 Artifacts:
 
 ```text
-dist/TizenHalo-1.0.0-q74t-55.tpk
-dist/TizenHalo-1.0.0-rgb-55.tpk
-dist/TizenHalo-1.0.0-s84f-90.tpk
+dist/TizenHalo-1.1.0-q74t-55.tpk
+dist/TizenHalo-1.1.0-rgb-55.tpk
+dist/TizenHalo-1.1.0-s84f-90.tpk
 ```
 
-The Q74T artifact is also copied to the existing `dist/TizenHalo-1.0.0.tpk` name.
-Version 1.0.0 is unchanged; filenames distinguish these local development builds.
+The Q74T artifact is also copied to the existing `dist/TizenHalo-1.1.0.tpk` name.
+These are the v1.1.0-alpha.1 test builds: numeric Tizen package version 1.1.0,
+runtime identity tizenhalo-1.1.0-alpha.1. The previous 1.0.0 artifacts are historical
+checkpoints; publish only the allowlisted assets prepared for the alpha.
 An artifact is copied into `dist` only **after** its profile-aware verification
 passes. The SDK's existing default-certificate signing remains unchanged; device
 installation/signing rules are separate, and no certificate material is in Git.

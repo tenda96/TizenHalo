@@ -45,8 +45,8 @@ namespace TizenAmbilight
     }
 
     /// <summary>
-    /// Q74T/Tizen 5.5 capture interop. Layout verified against setParameters/updateParameters
-    /// in this TV's libvideo-capture.so.0.1.0, not the upstream Tizen 9 layout.
+    /// Caller-owned ARM32 capture interop. The package selects an explicit native
+    /// header contract; Q74T remains the default, S84F is an opt-in experimental profile.
     /// +00 Y capacity, +04 C capacity, +08 width, +0c height, +10/+14 caller pointers,
     /// +18 color format, +1c protected, +20 3D, +24 interlaced, +28/+2c pitches,
     /// +30 timestamp low/high, +3c flip. Buffer pointers remain caller-owned.
@@ -65,8 +65,8 @@ namespace TizenAmbilight
         /// still writes into a buffer at least this large.</summary>
         public const int PlaneW = 1280;
         public const int PlaneH = 720;
-        public const int YBytes = PlaneW * PlaneH;      // 518400
-        public const int CBytes = YBytes / 2;           // 259200, NV12 interleaved
+        public const int YBytes = PlaneW * PlaneH;      // maximum managed storage across adapters
+        public const int CBytes = YBytes / 2;           // native allocation is bounded per ABI
 
         const int StructBytes = 256;
 
@@ -103,6 +103,9 @@ namespace TizenAmbilight
         static CaptureVideoMainFn _call;
         static IntPtr _legacyLib;
         static bool _legacy;
+        static VideoPlaneAbi _abi=VideoPlaneAbi.Q74T;
+        public static string AbiId {get{return _abi.Id;}}
+        static VideoPlaneAbi BoundsAbi {get{return CaptureProfile.Current.VideoAbi==VideoPlaneAbi.S84F.Id?VideoPlaneAbi.S84F:VideoPlaneAbi.Q74T;}}
         static string _selectionError;
         public static string ActiveMethod="main";
         public static string ResolvedSymbol=Symbol;
@@ -112,7 +115,10 @@ namespace TizenAmbilight
         // or start concurrent native calls when a browser changes the method.
         public static string SelectMethod(string id)
         {
+            if(!CaptureProfile.Current.AllowsMethod(id)||CaptureProfile.Current.VideoAbi=="none")
+            {ActiveMethod=id;return _selectionError="Capture method is unavailable in package profile "+CaptureProfile.Current.Id;}
             CaptureMethod method=CaptureMethods.Find(id);
+            if(!BoundsAbi.AllowsMethod(method))return _selectionError="Method not validated for "+BoundsAbi.Id;
             if(id==ActiveMethod && (_call!=null || _selectionError!=null)) return _selectionError;
             ActiveMethod=id;_selectionError=null;
             string init=Init();
@@ -135,9 +141,7 @@ namespace TizenAmbilight
 
         static void ResetParameters()
         {
-            for(int i=0;i<StructBytes;i++)Marshal.WriteByte(_param,i,0);
-            Marshal.WriteInt32(_param,OffYSize,YBytes);Marshal.WriteInt32(_param,OffCSize,CBytes);
-            Marshal.WriteInt32(_param,OffYAddr,_bufY.ToInt32());Marshal.WriteInt32(_param,OffCAddr,_bufC.ToInt32());
+            _abi.InitializeHeader(_param,_bufY.ToInt32(),_bufC.ToInt32());
         }
 
         /// <summary>Requested capture size. Configurable at runtime (control token `cw`/`ch`) because
@@ -150,8 +154,7 @@ namespace TizenAmbilight
         /// Returns false if the pair is unusable.</summary>
         public static bool SetRequestSize(int w, int h)
         {
-            if (w < 64 || h < 64 || w > PlaneW || h > PlaneH || (w & 1) != 0 || (h & 1) != 0) return false;
-            if ((long)w * h > (long)PlaneW * PlaneH) return false;
+            if(!BoundsAbi.FitsRequest(w,h))return false;
             ReqW = w; ReqH = h;
             return true;
         }
@@ -162,7 +165,7 @@ namespace TizenAmbilight
         public static string ResolvedPath = "";
 
         // Q74T color format is +0x18. Keep format 0; the old Tizen 9 sweep is disabled.
-        const int OffColorFormat = 0x18;
+        static int OffColorFormat {get{return _abi.ColorOffset;}}
         public static int ChosenColorFormat = -1;
         public static double ChosenChromaSpread = -1;
         public static string ColorFormatVerdict = "not probed";
@@ -176,10 +179,12 @@ namespace TizenAmbilight
         public static string Init()
         {
             if (_call != null) return null;
-            if (IntPtr.Size != 4) return "Q74T capture ABI requires a 32-bit ARM process";
+            if(CaptureProfile.Current.VideoAbi=="none")return "No full-frame ABI in package profile "+CaptureProfile.Current.Id;
+            if (IntPtr.Size != 4) return "Capture ABI requires a 32-bit ARM process";
 
             try
             {
+                _abi=VideoPlaneAbi.Find(CaptureProfile.Current.VideoAbi);
                 IntPtr err0 = dlerror();
                 _lib = dlopen(LibName, RTLD_NOW);
                 if (_lib == IntPtr.Zero)
@@ -198,19 +203,14 @@ namespace TizenAmbilight
                 if (_fn == IntPtr.Zero) return "dlsym " + Symbol + " failed";
 
                 _param = Marshal.AllocHGlobal(StructBytes);
-                _bufY = Marshal.AllocHGlobal(YBytes);
-                _bufC = Marshal.AllocHGlobal(CBytes);
+                _bufY = Marshal.AllocHGlobal(_abi.YBytes);
+                _bufC = Marshal.AllocHGlobal(_abi.CBytes);
                 if (_param == IntPtr.Zero || _bufY == IntPtr.Zero || _bufC == IntPtr.Zero)
                     return "allocation failed";
 
-                for (int i = 0; i < StructBytes; i++) Marshal.WriteByte(_param, i, 0);
-
-                Marshal.WriteInt32(_param, OffYSize, YBytes);
-                Marshal.WriteInt32(_param, OffCSize, CBytes);
-                Marshal.WriteInt32(_param, OffYAddr, _bufY.ToInt32());
-                Marshal.WriteInt32(_param, OffCAddr, _bufC.ToInt32());
-                Marshal.Copy(_y, 0, _bufY, YBytes);
-                Marshal.Copy(_c, 0, _bufC, CBytes);
+                ResetParameters();
+                Marshal.Copy(_y, 0, _bufY, _abi.YBytes);
+                Marshal.Copy(_c, 0, _bufC, _abi.CBytes);
 
                 _call = (CaptureVideoMainFn)Marshal.GetDelegateForFunctionPointer(
                             _fn, typeof(CaptureVideoMainFn));
@@ -228,15 +228,15 @@ namespace TizenAmbilight
         static double ChromaSpreadFor(int cf)
         {
             Marshal.WriteInt32(_param, OffColorFormat, cf);
-            for (int i = 0; i < CBytes; i++) Marshal.WriteByte(_bufC, i, 0);   // a no-write must be visible
+            for (int i = 0; i < _abi.CBytes; i++) Marshal.WriteByte(_bufC, i, 0);   // a no-write must be visible
             int rc = _call(ReqW, ReqH, _param);
             var rec = new Dictionary<string, object> { { "color_format", (long)cf }, { "rc", (long)rc } };
             if (rc != 0) { ColorFormatProbe.Add(rec); return -1; }
 
-            Marshal.Copy(_bufC, _c, 0, CBytes);
+            Marshal.Copy(_bufC, _c, 0, _abi.CBytes);
             long us = 0, vs = 0, us2 = 0, vs2 = 0; long n = 0;
             int umin = 255, umax = 0, vmin = 255, vmax = 0;
-            for (int i = 0; i + 1 < CBytes; i += 2)
+            for (int i = 0; i + 1 < _abi.CBytes; i += 2)
             {
                 byte u = _c[i], v = _c[i + 1];
                 us += u; us2 += (long)u * u; vs += v; vs2 += (long)v * v; n++;
@@ -262,7 +262,7 @@ namespace TizenAmbilight
             // format for the first Q74T trial rather than probe undocumented formats.
             ChosenColorFormat = 0;
             ChosenChromaSpread = -1;
-            ColorFormatVerdict = "Q74T experimental: default format 0, automatic sweep disabled";
+            ColorFormatVerdict = _abi.Id+": default format 0, automatic sweep disabled";
             if (_param != IntPtr.Zero && !_legacy) Marshal.WriteInt32(_param, OffColorFormat, 0);
         }
 
@@ -312,8 +312,7 @@ namespace TizenAmbilight
             if (_call == null) { r.Rc = -1; r.Error = "not initialised"; CaptureTrace.Complete(trace,r,0,0,CaptureTrace.Ticks(),false,0); return r; }
 
             // Never accept dimensions left over from the preceding method/frame.
-            Marshal.WriteInt32(_param,OffRetWidth,0);Marshal.WriteInt32(_param,OffRetHeight,0);
-            if(!_legacy) { Marshal.WriteInt32(_param,OffInterlaced,0);Marshal.WriteInt32(_param,OffYPitch,0);Marshal.WriteInt32(_param,OffCPitch,0); }
+            _abi.ClearOutputs(_param,_legacy);
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
             try
@@ -333,6 +332,8 @@ namespace TizenAmbilight
             try
             {
                 ReadResultHeader(_param,_legacy,r);
+                if(r.Rc==0&&!_abi.CallerPointersUnchanged(_param,_bufY.ToInt32(),_bufC.ToInt32()))
+                    r.Error=_abi.Id+": native call replaced caller-owned pointers";
             }
             catch { /* param readback only: a failure here leaves the fields 0 and the app still runs */ }
 
@@ -340,7 +341,7 @@ namespace TizenAmbilight
             if (r.Error!=null || !SupportedGeometry(r))
             {
                 sw.Stop(); r.CaptureMs = sw.Elapsed.TotalMilliseconds;
-                r.Error = r.Error ?? "Q74T unsupported returned plane geometry: " + r.RetWidth + "x" +
+                r.Error = r.Error ?? (_abi.Id==VideoPlaneAbi.Q74T.Id?"Q74T":_abi.Id)+" unsupported returned plane geometry: " + r.RetWidth + "x" +
                           r.RetHeight + " pitches=" + r.YPitch + "/" + r.CPitch +
                           " interlaced=" + r.Interlaced;
                 CaptureTrace.Complete(trace,r,nativeStart,nativeEnd,CaptureTrace.Ticks(),nativeCalled,3);
@@ -349,33 +350,13 @@ namespace TizenAmbilight
 
             try
             {
-                Marshal.Copy(_bufY, _y, 0, YBytes);
-                Marshal.Copy(_bufC, _c, 0, CBytes);
-                // Report what the library ACTUALLY produced, falling back to the request. The zone
-                // layout is built from these, so a size change is picked up automatically.
-                int aw = Marshal.ReadInt32(_param, OffRetWidth);
-                int ah = Marshal.ReadInt32(_param, OffRetHeight);
-                r.W = (aw > 0 ? aw : ReqW);
-                r.H = (ah > 0 ? ah : ReqH);
-                // ABI SANITY CLAMP. If a firmware upgrade changes the param layout these fields could
-                // come back as anything. Clamp rather than trust: an out-of-range width would otherwise
-                // shear every zone read. Extraction also bounds-checks against the buffer, so a bad
-                // value degrades rather than corrupting memory.
-                bool abiOdd = false;
-                if (r.W < 64 || r.W > PlaneW) { abiOdd = true; r.W = ReqW; }
-                if (r.H < 64 || r.H > PlaneH) { abiOdd = true; r.H = ReqH; }
-                if (abiOdd && !_abiWarned)
-                {
-                    _abiWarned = true;
-                    r.Error = "ABI: unexpected returned dims " + aw + "x" + ah + " - using " + r.W + "x" + r.H;
-                }
-                // Stride: the reported pitch when it is sane, else assume pitch == width. Only
-                // reported before - if the pitch ever differs, reading rows at `width` would shear
-                // the picture.
-                int yp = _legacy?0:Marshal.ReadInt32(_param, OffYPitch);
-                int cp = _legacy?0:Marshal.ReadInt32(_param, OffCPitch);
-                r.YStride = (yp >= r.W && yp <= PlaneW) ? yp : r.W;
-                r.CStride = (cp >= r.W && cp <= PlaneW) ? cp : r.W;
+                r.W=r.RetWidth;r.H=r.RetHeight;
+                r.YStride=r.YPitch==0?r.W:r.YPitch;
+                r.CStride=r.CPitch==0?r.W:r.CPitch;
+                // Geometry was checked against the selected adapter's capacities above.
+                // Copy only returned rows; never follow a library-supplied replacement pointer.
+                Marshal.Copy(_bufY,_y,0,r.YStride*r.H);
+                Marshal.Copy(_bufC,_c,0,r.CStride*(r.H/2));
                 r.Y = _y; r.C = _c;
             }
             catch (Exception e)
@@ -390,32 +371,10 @@ namespace TizenAmbilight
         }
 
         internal static void ReadResultHeader(IntPtr p,bool legacy,VideoPlaneResult r)
-        {
-            r.RetWidth=Marshal.ReadInt32(p,OffRetWidth);r.RetHeight=Marshal.ReadInt32(p,OffRetHeight);
-            r.ColorFormat=Marshal.ReadInt32(p,0x18);r.ProtectedOn=Marshal.ReadInt32(p,0x1c);
-            r.YCapacity=Marshal.ReadInt32(p,0);r.CCapacity=Marshal.ReadInt32(p,4);
-            r.NativeTimestamp=Marshal.ReadInt64(p,0x30);r.FlipType=Marshal.ReadInt32(p,0x3c);
-            // Q74T modern offsets come from its native updateParameters. Legacy copies
-            // packed rows; retain its separate policy instead of trusting optional pitches.
-            if(!legacy) {
-                r.Interlaced=Marshal.ReadInt32(p,OffInterlaced);
-                r.YPitch=Marshal.ReadInt32(p,OffYPitch);r.CPitch=Marshal.ReadInt32(p,OffCPitch);
-            }
-            if(r.Rc==0&&r.RetWidth>0&&r.RetHeight>0&&r.ColorFormat!=0)r.Error="Q74T: formato restituito diverso da YUV420";
-        }
+        { _abi.ReadHeader(p,legacy,r); }
 
         public static bool SupportedGeometry(VideoPlaneResult r)
-        {
-            // On the Q74T, successful captures report 720x540 but leave both
-            // optional pitch outputs at zero. The upstream path uses width then.
-            return r != null && r.RetWidth >= 64 && r.RetWidth <= PlaneW &&
-                   r.RetHeight >= 64 && r.RetHeight <= PlaneH && r.Interlaced == 0 &&
-                   (r.YPitch == 0 || (r.YPitch >= r.RetWidth && r.YPitch <= PlaneW)) &&
-                   (r.CPitch == 0 || (r.CPitch >= r.RetWidth && r.CPitch <= PlaneW)) &&
-                   (long)(r.YPitch == 0 ? r.RetWidth : r.YPitch)*r.RetHeight <= YBytes &&
-                   (long)(r.CPitch == 0 ? r.RetWidth : r.CPitch)*(r.RetHeight/2) <= CBytes &&
-                   (r.RetWidth & 1) == 0 && (r.RetHeight & 1) == 0;
-        }
+        { return BoundsAbi.SupportedGeometry(r); }
 
         static int[] _hist;
 
@@ -489,7 +448,6 @@ namespace TizenAmbilight
         /// for dim ones. Live-tunable so the choice is per-content rather than a guess.</summary>
         public static double HdrPeakNits = 203.0;
 
-        static bool _abiWarned;
 
         static byte[] _pqTable;
         public static bool UseHlg;

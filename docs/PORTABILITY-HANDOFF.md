@@ -5,6 +5,13 @@ Original online baseline: `8e4f9107bf05c444dedff5852cd806b5d633bab3`.
 RU7100 diagnostic commit: `da7ad2c`. Inspect `git log -3` for the current checkpoint
 commit; do not reset the branch to the online baseline.
 
+**Latest stage:** experimental S84F full-frame adapter and profile-aware builds
+are now implemented and tested offline. Start with `docs/BUILD-PROFILES.md` for
+the current package boundary. The user clarified that TVs with the same usable
+runtime should share a package where possible: do not create a permanent package
+for every TV model. Q74T-5.5 and RGB-5.5 currently have identical application DLLs;
+their separate metadata/test artifacts are for safe first-owner trials.
+
 ## User objective and present boundary
 
 Long term: cover as many Samsung/Tizen TVs as evidence permits, sharing settings,
@@ -34,7 +41,7 @@ PR #14/#15 in reisxd and PR #2 in lowryn were **open**, not merged, at review ti
 Follow-up comments matter: the QN90A owner already had a Partner certificate;
 The Frame author's initial on-boot claim was retracted after testing.
 
-## Code already changed in this stage
+## First integration (commit ada9578)
 
 - `RgbMeasureApi.cs`: resolve complete condition/position/pixel triplets, priority
   `ppi_ve` → `ve` → `cs_ve`. No native invocation in the resolver, no mixed families.
@@ -50,9 +57,35 @@ The Frame author's initial on-boot claim was retracted after testing.
   startup with both unrelated libraries unavailable.
 - Catalogue generator and validation prevent a moving branch as a commit pin,
   missing references, duplicate devices and upstream-only promotion to local support.
-- No full-frame S84F/Q80A adapter has been enabled. No GPL implementation copied.
+- At that checkpoint no full-frame S84F/Q80A adapter was enabled. No GPL implementation copied.
 
-For an explicit RGB test, use the install-time `captureBackend: ppi` setting in
+## Current integration after ada9578
+
+- `VideoPlaneAbi.cs`: independently named Q74T/S84F ARM32 header contracts,
+  caller-owned capacities, pointer/stride/geometry checks. Q74T retains its offsets;
+  S84F shifts the format/flags/pitches and has no trusted timestamp/flip offset.
+- `VideoPlaneCapture.cs`: uses the installed layout, copies only validated returned
+  rows from its own buffers, rejects replacement pointers and restricts entry points.
+  S84F is main-only, 960×540 maximum; automatic color-format sweeps stay disabled.
+- `CaptureProfile.cs`: loads a validated package profile once from
+  `res/capture-profile.json`. Malformed/missing metadata disables capture, never
+  guesses Q74T. Browser/config/control cannot select a foreign writable layout.
+- `LocalSettings.cs`: profile defaults, valid method filtering and saved-settings
+  migration preserve WLED/custom layout while replacing incompatible capture values.
+- `compatibility/profiles/*.json`, `tools/build-profile.py`, project properties:
+  three explicit test profiles with generated matching manifests, isolated SDK
+  staging and profile-aware TPK verification before distribution-copy.
+- `Settings.html`: shows the installed profile, lists only permitted methods and
+  no longer describes 15 fps as a universal Samsung limit.
+- New host tests cover binary header offsets/bounds, unknown tail, package startup
+  constraints, method rejection/recovery, saved layout preservation and invalid
+  metadata. Python checks cover matching manifest API/identity and unchanged sources.
+- All three TPKs compile with zero warnings/errors and pass 25 signed-digest checks.
+  Shared regressions, UDP interpolation and browser editor checks pass. A repeated
+  profile switch caught/fixed stale SDK resource staging; the verifier also rejects
+  a S84F artifact passed as Q74T. No on-device test of this revision yet.
+
+For an explicit RGB test, build the locked `rgb-55` package, or use the install-time `captureBackend: ppi` setting in
 an ignored `app/config.json`; preserve the owner's actual WLED/layout values.
 The persistent browser backend selector is not implemented yet. Do not distribute
 the default Q74T full-frame build to an unknown TV as a universal package.
@@ -64,12 +97,12 @@ From the repository root:
 ```sh
 python3 tools/compatibility-catalogue.py --check
 python3 -m unittest discover -s tests -p 'test_compatibility_catalogue.py'
-bash build.sh
+bash build.sh all
 ```
 
-`build.sh` validates the table, runs catalogue guards, compiles the Tizen app,
+`build.sh all` validates the table, runs catalogue/profile guards, compiles all three targets,
 runs host tests, the UDP interpolation check, the browser layout test and the
-package verifier. It builds `dist/TizenHalo-1.0.0.tpk`. The current checkpoint is
+package verifier. It builds profile-suffixed TPKs and a Q74T alias `dist/TizenHalo-1.0.0.tpk`. The current checkpoint is
 an experimental portability build, not a new multi-TV support release.
 
 In this workspace the existing NuGet cache is at
@@ -83,13 +116,15 @@ sampler. This is a test-environment error, not evidence of a device capture fail
 1. Obtain an owner diagnostic for a known RGB-positive TV and match actual exports,
    process architecture and native permissions. Build an explicitly forced RGB
    test profile; record condition, fresh source colors and complete-set refresh.
-2. For full frames, start with an independently named S84F MIT layout adapter:
-   factor header read/write logic, verify all offset/alignment and capacities with
-   synthetic tests, preserve the Q74T layout and require explicit selection.
+2. Test the built S84F-9 profile with an owner: exact firmware, launch/service,
+   library permissions, fresh SDR picture/colors, returned dimensions/strides and
+   sustained rate. Synthetic layout tests already pass; timestamp/flip tail remains
+   unread until proven. Run a Q74T device regression for the refactored adapter too.
 3. Continue Q80A contract research from the pinned PR. Establish geometry, pitches,
    pointer lifetime and exact firmware before implementing native readback.
-4. Add explicit persistent backend/profile selection and package/runtime profiles
-   after those contracts exist. Unknown firmware must not silently pick an ABI
+4. Package/runtime profiles now exist. Design a shared-runtime first-launch
+   selection flow and persistent backend choice to consolidate test variants where
+   possible, using actual device identification evidence. Unknown firmware must not silently pick an ABI
    from Tizen version or model year. Run launcher/service checks per profile.
 5. Owner tests: identified SDR source first, bounded capture, correct colors and
    mapping, stable freshness, output on/off, stop, standby and icon restart. Then

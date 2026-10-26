@@ -209,6 +209,7 @@ namespace TizenAmbilight
             CaptureFileName = cfg.CompressType == CaptureApi.CompressJpeg ? "amb.jpg" : "amb.png";
 
             L("=== " + AppId + " " + Version + " starting ===");
+            L("Capture profile: "+CaptureProfile.Current.Id+" ("+CaptureProfile.Current.VideoAbi+") "+(CaptureProfile.Error??""));
             L(RecordedMeasurement);
             L("config: " + ConfigFile.Source + " (" + ConfigFile.Count + " keys)");
             if (!cfg.HasWled)
@@ -292,6 +293,10 @@ namespace TizenAmbilight
             // of both full-frame libraries. Other backends gate on their own library only.
             if (backendErr != null)
             {
+                string problem=(CaptureProfile.Error==null?"":CaptureProfile.Error+"; ")+backendErr;
+                LocalSettings.LiveStatus=new Dictionary<string,object>{{"status",problem},{"capture_profile",CaptureProfile.Current.Describe()},
+                    {"output_enabled",cfg.OutputEnabled}};
+                ServiceHeartbeat.Publish("error",0,0,problem,true);
                 Post(cfg, BuildReport(cfg, selfTest, backendErr, captureDir, discovery, "no_library", stats));
                 L("cannot run the main loop without the capture library; idling and retrying every 60 s");
                 while (true)

@@ -19,13 +19,13 @@ integration is experimental on all other models.
 | QE55Q74T, T-NKMDEUC-2743.0, Tizen 5.5 | Firmware ABI analysis and on-device capture tests | Existing supported reference device |
 | Other Tizen 5.5 TVs | No device-specific report yet | Unverified; do not assume the Q74T's firmware ABI |
 | UN43RU7100FXZC, T-MSLAKUC-1500.5, Tizen 5.0 | Official firmware downloaded and identified; encrypted header audited | Research only; separate diagnostic package ready, capture ABI not recovered |
-| S84F, Tizen 9 | TizenAmbilight upstream reports working video-plane and RGB sampling | Candidate for a separate adapter; not verified in TizenHalo |
-| Tizen 6.5+ with RGB sampling exports | HyperTizen/TizenGlow publish sampling implementations | Candidate for a sampling adapter; no blanket TizenHalo support claim |
+| S84F, Tizen 9 | TizenAmbilight upstream reports working video-plane and RGB sampling | Separate experimental adapter/profile builds; no TizenHalo owner test yet |
+| Tizen 6.5+ with RGB sampling exports | HyperTizen/TizenGlow publish sampling implementations | RGB-family discovery integrated; runtime/device validation pending, no blanket support claim |
 | Earlier Tizen releases | Runtime and capture interfaces not assessed | Long-term research; may require a different host/package |
 
 Samsung's [model-group table](https://developer.samsung.com/smarttv/develop/specifications/tv-model-groups.html)
 lists the 2019 RU7100 family under Tizen **5.0**. The 2020 Q74T is on 5.5.
-The current main application's project and manifest target **5.5**, so lowering
+The reference application's default project/manifest target is **5.5**, so lowering
 the package requirement is one necessary change for a 5.0 port, but it does not
 establish that the native capture ABI matches.
 
@@ -75,6 +75,11 @@ The RGB interface measures a limited number of blocks. It is a different backend
 from full-frame capture and needs its own rate/quality reporting. A complete
 symbol family is a useful discovery result, not proof of a compatible condition
 structure or working measurements. The diagnostic inventories all three prefixes.
+
+The [build profile guide](BUILD-PROFILES.md) explains the new Q74T-5.5, RGB-5.5 and
+S84F-9 test artifacts. The two 5.5 profiles use byte-identical application DLLs;
+separate RGB packaging is a first-test boundary, not a permanent per-model split.
+The objective is a few runtime packages with multiple proven capture paths.
 
 ## Implementation order
 

@@ -29,7 +29,12 @@ namespace TizenAmbilight
         public static object[] Describe()
         {
             var list=new List<object>();
-            foreach(var m in All)list.Add(new Dictionary<string,object>{{"id",m.Id},{"label",m.Label},{"library",m.Library},{"symbol",m.Symbol},{"note",m.Note},{"experimental",m.Id!="screen_video"}});
+            if(CaptureProfile.Current.Backend=="ppi")return new object[]{new Dictionary<string,object>{{"id","main"},{"label","RGB point sampler"},{"library","libvideoenhance.so"},
+                {"symbol","complete RGB triplet"},{"note","This package measures RGB spots; full-frame methods are disabled. LED send rate is separate from point refresh."},{"experimental",true}}};
+            foreach(var m in All)if(CaptureProfile.Current.AllowsMethod(m.Id))
+                list.Add(new Dictionary<string,object>{{"id",m.Id},{"label",m.Label},{"library",m.Library},{"symbol",m.Symbol},
+                {"note",CaptureProfile.Current.Id=="q74t-55"?m.Note:"S84F experimental video-plane adapter. Not validated in TizenHalo; Q74T rates do not apply."},
+                {"experimental",CaptureProfile.Current.Experimental||m.Id!="screen_video"}});
             return list.ToArray();
         }
     }

@@ -155,6 +155,11 @@ The script builds the package, runs the host tests and checks the result. Output
 `dist/TizenHalo-<version>.tpk`, signed with the Tizen SDK's default certificate. To bake your own values
 into the package, copy `app/config.example.json` to `app/config.json` first (it is ignored by git).
 
+The default is the Q74T/5.5 reference. Experimental RGB-5.5 and S84F-9 profile
+builds are documented in [BUILD-PROFILES.md](BUILD-PROFILES.md); `./build.sh all`
+builds and checks all three. Profiles are native/runtime test boundaries, not a
+permanent application per TV or a new validated-support release.
+
 To install with your own certificate instead of Apps2Samsung: enable Developer Mode on the TV with your
 computer's IP, create a Samsung certificate profile for the TV in Tizen Studio's Certificate Manager,
 then re-sign and install with the Tizen CLI:

@@ -80,7 +80,8 @@ namespace TizenAmbilight
                 {"capture_backend",cfg.CaptureBackend},{"rgb_api_family",PpiCapture.ApiFamily},
                 {"rgb_api_symbols",PpiCapture.ApiSymbols},{"rgb_init_error",PpiCapture.InitError},
                 {"capture_abi",cfg.CaptureBackend==PpiCapture.BackendName||_ppiAuto?"rgb-measure":
-                               cfg.CaptureBackend=="file"?"file-screenshot":"q74t-55-native-v1"},
+                               cfg.CaptureBackend=="file"?"file-screenshot":CaptureProfile.Current.VideoAbi},
+                {"capture_profile",CaptureProfile.Current.Describe()},
                 {"requested_resolution",VideoPlaneCapture.ReqW+"x"+VideoPlaneCapture.ReqH},
                 {"capture_method_error",VideoPlaneCapture.SelectionError}
             };
@@ -150,6 +151,7 @@ namespace TizenAmbilight
 
             // ---- capture backend / ppi fallback ----
             w["backend_cfg"] = cfg.CaptureBackend;
+            w["capture_profile"] = CaptureProfile.Current.Describe();
             w["backend_active"] = st.BackendActive;
             w["ppi_auto_engaged"] = _ppiAuto;
             w["drm_streak"] = (long)_drmStreak;

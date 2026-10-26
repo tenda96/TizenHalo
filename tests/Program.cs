@@ -9,6 +9,8 @@ class Program
     }
     static void Main(string[] args)
     {
+        if(args.Length>0&&args[0]=="profile") {CaptureProfileTests.Installed(args[1]);return;}
+        if(args.Length>0&&args[0]=="profile-invalid") {CaptureProfileTests.Invalid(args[1]);return;}
         if(args.Length>0&&args[0]=="interpolation") {
             using(var receiver=new System.Net.Sockets.UdpClient(new System.Net.IPEndPoint(System.Net.IPAddress.Loopback,0))) {
                 receiver.Client.ReceiveTimeout=600;
@@ -49,6 +51,7 @@ class Program
         }
         RgbMeasureApiTests.Run();
         CaptureBackendStartupTests.Run();
+        VideoPlaneAbiTests.Run();
         CustomizationTests.Run();
         TraceTests.Run();
         Check(LaunchRouting.Resolve("io.github.tenda96.TizenHalo")==LaunchRole.Menu,"Icon must select menu");

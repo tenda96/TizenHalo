@@ -1,0 +1,10 @@
+{
+  "id": "s84f-90",
+  "target_framework": "tizen90",
+  "api_version": "9.0",
+  "capture_backend": "video_plane",
+  "video_abi": "s84f-90-native-v1",
+  "default_method": "main",
+  "default_capture_fps": 25,
+  "experimental": true
+}

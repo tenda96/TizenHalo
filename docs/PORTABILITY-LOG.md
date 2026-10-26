@@ -42,3 +42,58 @@ publication. The generated package uses the unchanged 1.0.0 manifest version;
 it is an experimental local checkpoint, not a claim of a new supported-TV release.
 Next work is the opt-in owner RGB test and an independently named S84F full-frame
 layout contract; Q80A still needs stronger readback/stride/firmware evidence.
+
+## 2026-10-26 — explicit adapter/runtime profiles and S84F integration
+
+User clarified the packaging objective: TVs with the same usable Tizen runtime
+should share a package where possible. Separate **native contracts** do not imply
+one permanent application per model. The two 5.5 test profiles below contain
+byte-identical application DLLs; the RGB artifact forces the safe first-test path.
+
+Implemented:
+
+- Named `VideoPlaneAbi` contracts for Q74T and S84F, used by the capture wrapper.
+  S84F uses shifted flags/pitches, 960×540 caller-owned plane capacities and main
+  only. Its uncertain timestamp/flip tail is unread. Both contracts validate
+  geometry/strides and copy only returned rows from the caller's own buffers;
+  replacement pointers are rejected. No native format sweep was enabled.
+- Package metadata profiles loaded once, separately from editable user settings.
+  Missing/malformed metadata disables capture and publishes an error. RGB cannot
+  be changed to Q74T video/file by user config or legacy control; S84F cannot select
+  Q74T-only methods. Method rejection can recover to an allowed method.
+- Profile default settings and migration preserve saved WLED/layout while replacing
+  incompatible methods and oversized S84F requests. Browser status/method notes
+  identify the installed profile and avoid extending Q74T's 15-fps limit to all TVs.
+- Reproducible profile build tool, matching generated manifests, profile-aware
+  verification and isolated SDK staging. Never overwrite a distributable until
+  verification passes. Default reference build/filename remain available.
+- Found a real SDK incremental-staging defect: Q74T → RGB → Q74T could retain RGB
+  metadata under a Q74T-named TPK. Verification rejected it; per-profile tpkroot
+  directories fixed the repeated-switch test. Kept that finding in build docs.
+
+Verification:
+
+- `bash build.sh all`: PASS, including six Python catalogue/manifest tests, all
+  three Tizen package builds with zero warnings/errors, shared host regressions,
+  synthetic native header/bounds tests, three installed-profile/migration tests,
+  missing/malformed metadata cases, loopback interpolation and browser layout test.
+- All three TPKs: PASS, 25 signed file digests each, matching runtime/API/profile.
+- Rebuilt Q74T after the full profile cycle: PASS (no stale RGB metadata).
+- Compared Q74T/RGB application DLL bytes: identical.
+- Passed S84F artifact as Q74T to verifier: correctly rejected.
+- Catalogue updated: S84F now **experimental full-frame adapter**, not validated.
+- No TV installation, live capture, settings changes or upstream publication.
+  Q74T refactor needs a device regression; S84F/RGB profiles need owner tests.
+
+Current local artifacts (signature timestamps may change hashes on a later rebuild):
+
+| Profile | Bytes | SHA-256 |
+|---|---:|---|
+| `q74t-55` | 222322 | `46f8cc8e6b7f57ec0fba4a76368490421cf76f25b6fc6a3a07fe35ea131e16f3` |
+| `rgb-55` | 222323 | `9b23fdb335f2e8cf021fadcef5cd8d3951aea85e7d9b4c1a0c4499894ee39a29` |
+| `s84f-90` | 222604 | `e65133212e5a541799d2b51018b76bb3f9bf303609ac4f35931ea5c4a91133cd` |
+
+Next: short Q74T regression and opted-in S84F/RGB owner reports. Continue Q80A
+static contract review only with additional evidence; its full-frame profile is
+still absent. RU7100/MuseL stays blocked on new key or owner-library evidence.
+Read `PORTABILITY-HANDOFF.md` and `BUILD-PROFILES.md` before changing package policy.

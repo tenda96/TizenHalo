@@ -117,12 +117,21 @@ It is also kept compatible with TizenAmbilight's install form. With two hardware
 20 ms settle time, 24 positions need at least 240 ms for a complete set, before other overhead.
 Interpolated LED sends can run faster; they do not add measurements.
 
-For an opt-in RGB test on a new device, copy `app/config.example.json` to the ignored
+For an opt-in RGB test, the `rgb-55` [test profile](BUILD-PROFILES.md) forces the
+sampler without a full-frame ABI. It has the same application DLL as the Q74T-5.5
+profile; runtime compatibility on other TVs still needs an owner test.
+
+Alternatively, in the Q74T profile, copy `app/config.example.json` to the ignored
 `app/config.json`, retain your actual WLED/layout values and add `"captureBackend": "ppi"`.
 Build and install that package. The choice is currently an install-time/developer setting,
 not a persistent selector in the browser UI. It must be explicit on unknown full-frame ABIs;
 the default `video_plane` still uses the Q74T native contract.
-The sampler selects the first complete `ppi_ve`, `ve`, or `cs_ve` triplet, in that order.
+Package profiles constrain these settings: RGB-only cannot switch to video/file;
+S84F exposes only the `main` full-frame method and requests up to 960×540. Native
+ABI selection is package metadata, not an editable browser setting. When replacing
+a profile, incompatible saved capture methods/requests are normalized while WLED
+and layout values are retained. The sampler selects the first complete `ppi_ve`,
+`ve`, or `cs_ve` triplet, in that order.
 `/api/status` reports `capture_backend`, `rgb_api_family`, `rgb_api_symbols` and
 `rgb_init_error`; the larger telemetry report retains the sampler condition and counters.
 Availability of symbols is not proof of working measurements. See [native contracts](CAPTURE-CONTRACTS.md).

@@ -23,9 +23,9 @@ namespace TizenAmbilight
             return new Dictionary<string,object> {
                 {"wledIp",""},{"wledPort",21324},{"ledCount",100},{"customLayout",false},
                 {"mapOffset",0},{"mapReverse",false},{"manualSides",false},
-                {"layoutMode","standard"},{"ledLayout",""},{"captureMethod","screen_video"},
+                {"layoutMode","standard"},{"ledLayout",""},{"captureMethod",CaptureProfile.Current.DefaultMethod},
                 {"ledsTop",30},{"ledsRight",20},{"ledsBottom",30},{"ledsLeft",20},
-                {"outputEnabled",true},{"targetFps",15},{"captureWidth",960},{"captureHeight",540},
+                {"outputEnabled",true},{"targetFps",CaptureProfile.Current.DefaultFps},{"captureWidth",960},{"captureHeight",540},
                 {"interpolation",true},{"outputFps",30},{"precisePacing",true},{"hdrMode","auto"},{"alpha",.5},{"alphaFast",.85},
                 {"saturation",1.25},{"gain",1.0},{"gamma",1.15},{"black",18},
                 {"adaptiveGamma",false},{"bars",true},{"barRows",true},{"barThresh",18},
@@ -41,7 +41,13 @@ namespace TizenAmbilight
                 _values=SeedFromConfigFile(Defaults());
                 if (File.Exists(_path))
                 {
-                    try { _values=MergeAndValidate(_values,ConfigFile.Parse(File.ReadAllText(_path))); }
+                    try {
+                        var saved=ConfigFile.Parse(File.ReadAllText(_path));
+                        // A package-profile change replaces only an incompatible method;
+                        // retain the owner's saved WLED, colors and custom layout.
+                        CaptureProfile.Current.NormalizeSaved(saved);
+                        _values=MergeAndValidate(_values,saved);
+                    }
                     catch(Exception e) { Error="Saved settings are invalid: "+e.Message; }
                 }
                 _revision++;
@@ -143,7 +149,10 @@ namespace TizenAmbilight
                     if(mode!="auto"&&mode!="sdr"&&mode!="hdr"&&mode!="hlg") throw new ArgumentException("Invalid HDR mode");
                     next[kv.Key]=mode;
                 }
-                else if(kv.Key=="captureMethod") { CaptureMethods.Find(kv.Value as string);next[kv.Key]=kv.Value; }
+                else if(kv.Key=="captureMethod") {
+                    if(!CaptureProfile.Current.AllowsMethod(kv.Value as string))throw new ArgumentException("Capture method unavailable in this package profile");
+                    next[kv.Key]=kv.Value;
+                }
                 else if(kv.Key=="layoutMode") {
                     string mode=kv.Value as string;if(mode=="preset")mode="standard";if(mode!="standard"&&mode!="custom")throw new ArgumentException("Invalid layout mode");next[kv.Key]=mode;
                 }
@@ -167,6 +176,9 @@ namespace TizenAmbilight
                 throw new ArgumentException("The four side counts must add up to the LED count");
             if(Convert.ToInt32(next["mapOffset"])>=count) throw new ArgumentException("The first LED position must be lower than the LED count");
             if(Convert.ToDouble(next["captureWidth"])*Convert.ToDouble(next["captureHeight"])>VideoPlaneCapture.YBytes) throw new ArgumentException("Capture size too large");
+            if(CaptureProfile.Current.VideoAbi==VideoPlaneAbi.S84F.Id &&
+               !VideoPlaneAbi.S84F.FitsRequest(Convert.ToInt32(next["captureWidth"]),Convert.ToInt32(next["captureHeight"])))
+                throw new ArgumentException("S84F profile supports requests up to 960x540");
             if((Convert.ToInt32(next["captureWidth"])&1)!=0||(Convert.ToInt32(next["captureHeight"])&1)!=0)throw new ArgumentException("YUV420 capture needs an even width and height");
             if(Convert.ToDouble(next["alphaFast"])<Convert.ToDouble(next["alpha"])) next["alphaFast"]=next["alpha"];
             return next;

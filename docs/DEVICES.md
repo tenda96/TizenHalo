@@ -12,7 +12,7 @@ Unknown firmware is shown explicitly. Open PRs are pinned separately from their 
 |---|---|---|---|---|---|
 | [QE55Q74T](#q74t) | 5.5 | working | Q74T caller-owned full-frame ABI | Validated locally | [halo-reference](https://github.com/tenda96/TizenHalo/blob/8e4f9107bf05c444dedff5852cd806b5d633bab3/README.md), [report 1](https://github.com/tenda96/TizenHalo/blob/8e4f9107bf05c444dedff5852cd806b5d633bab3/docs/TECHNICAL.md) |
 | [UN43RU7100FXZC](#ru7100) | 5.0 | unknown | Unknown; read-only diagnostic prepared | Research only | [halo-reference](https://github.com/tenda96/TizenHalo/blob/8e4f9107bf05c444dedff5852cd806b5d633bab3/README.md), [report 1](https://www.samsung.com/ca/support/model/UN43RU7100FXZC/) |
-| [QN77S84FAEXZA](#s84f) | 9.0 | working | Full video plane; ppi_ve RGB fallback | Candidate; TV untested | [ambilight](https://github.com/RitwickVerma/TizenAmbilight/blob/ccb646600286a02150aa353db261ca3753a44a9e/README.md) |
+| [QN77S84FAEXZA](#s84f) | 9.0 | working | Full video plane; ppi_ve RGB fallback | Full-frame adapter experimental; TV untested | [ambilight](https://github.com/RitwickVerma/TizenAmbilight/blob/ccb646600286a02150aa353db261ca3753a44a9e/README.md) |
 | [QE55Q80AATXXC](#q80a) | 6.0 | working | libsec-video-capture.so.0 / secvideo_api_capture_screen | Adapter not integrated | [q80a-pr](https://github.com/lowryn/HyperTizen/pull/2) |
 | [GQ55QN90AATXZG](#qn90a) | 6.0 | blocked | Upstream full-frame path blocked | Adapter not integrated | [ambilight](https://github.com/RitwickVerma/TizenAmbilight/blob/ccb646600286a02150aa353db261ca3753a44a9e/README.md), [report 1](https://github.com/RitwickVerma/TizenAmbilight/issues/2), [report 2](https://github.com/RitwickVerma/TizenAmbilight/issues/2#issuecomment-6396580499) |
 | [QN55Q7FAAFXZC](#q7f-cert) | 9 | partial | Full-frame library permission report | Candidate; TV untested | [ambilight](https://github.com/RitwickVerma/TizenAmbilight/blob/ccb646600286a02150aa353db261ca3753a44a9e/README.md), [report 1](https://github.com/RitwickVerma/TizenAmbilight/issues/1), [report 2](https://github.com/RitwickVerma/TizenAmbilight/issues/1#issuecomment-6357686799) |
@@ -51,7 +51,7 @@ Unknown firmware is shown explicitly. Open PRs are pinned separately from their 
 - Firmware: `not supplied`. Evidence: `upstream_author`; checked 2026-10-26.
 - Observation: TizenAmbilight reference TV; video plane for available video, RGB fallback for withheld frames.
 - Rate: Upstream reports roughly 20–25 full captures/s; 24-point RGB set about 3.3–4.1 refreshes/s; LED sends are separate.
-- Limits: Full-frame header differs from Q74T; complete RGB discovery alone does not validate TizenHalo on this model.
+- Limits: Separate experimental s84f-90 adapter and Tizen 9 package now compile and pass synthetic layout/bounds checks. Main-only, up to 960x540; timestamp/flip tail unread. No TizenHalo on-device validation.
 - Sources: [ambilight](https://github.com/RitwickVerma/TizenAmbilight/blob/ccb646600286a02150aa353db261ca3753a44a9e/README.md).
 
 <a id="q80a"></a>

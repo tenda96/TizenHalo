@@ -1,0 +1,10 @@
+{
+  "id": "rgb-55",
+  "target_framework": "tizen55",
+  "api_version": "5.5",
+  "capture_backend": "ppi",
+  "video_abi": "none",
+  "default_method": "main",
+  "default_capture_fps": 15,
+  "experimental": true
+}

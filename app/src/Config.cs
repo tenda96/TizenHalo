@@ -183,6 +183,9 @@ namespace TizenAmbilight
             string resDir = null;
             try { resDir = Application.Current?.DirectoryInfo?.Resource; } catch { }
             string binDir = AppDomain.CurrentDomain.BaseDirectory ?? "";
+            CaptureProfile.LoadOnce(
+                string.IsNullOrEmpty(resDir) ? null : System.IO.Path.Combine(resDir,"capture-profile.json"),
+                System.IO.Path.Combine(binDir,"..","res","capture-profile.json"));
             ConfigFile.Load(
                 string.IsNullOrEmpty(resDir) ? null : System.IO.Path.Combine(resDir, "config.json"),
                 System.IO.Path.Combine(binDir, "..", "res", "config.json"));
@@ -326,7 +329,7 @@ namespace TizenAmbilight
             // shaving cheap arithmetic.
             c.Interpolation=PrefBool("interpolation",true);
             c.OutputFps=PrefInt("outputFps",30);
-            c.TargetFps = Math.Max(0, Math.Min(120, PrefInt("targetFps", 25)));
+            c.TargetFps = Math.Max(0, Math.Min(120, PrefInt("targetFps", CaptureProfile.Current.DefaultFps)));
             c.WhiteR = Math.Max(0.1, Math.Min(4.0, PrefDouble("whiteR", 1.0)));
             c.WhiteG = Math.Max(0.1, Math.Min(4.0, PrefDouble("whiteG", 1.0)));
             c.WhiteB = Math.Max(0.1, Math.Min(4.0, PrefDouble("whiteB", 1.0)));
@@ -350,16 +353,14 @@ namespace TizenAmbilight
             if(!PrefBool("enableLegacyControl",false)) c.ControlUrl="";
             c.PrecisePacing=PrefBool("precisePacing",true);
             VideoPlaneCapture.SetRequestSize(PrefInt("captureWidth",960),PrefInt("captureHeight",540));
-            c.CaptureMethod=PrefString("captureMethod","screen_video");
+            c.CaptureMethod=CaptureProfile.Current.ResolveMethod(PrefString("captureMethod",CaptureProfile.Current.DefaultMethod));
 
             // ---- mapping: which LED shows zone 0, and which way the ring runs ----
             c.MapOffset = PrefInt("mapOffset", 0);
             c.MapOffset = ((c.MapOffset % c.ZoneCount) + c.ZoneCount) % c.ZoneCount;
             c.MapReverse = PrefInt("mapReverse", 0) != 0;
 
-            c.CaptureBackend = PrefString("captureBackend", VideoPlaneCapture.BackendName);
-            if (c.CaptureBackend != VideoPlaneCapture.BackendName && c.CaptureBackend != "file" && c.CaptureBackend != PpiCapture.BackendName)
-                c.CaptureBackend = VideoPlaneCapture.BackendName;
+            c.CaptureBackend = CaptureProfile.Current.ResolveBackend(PrefString("captureBackend",CaptureProfile.Current.Backend));
             // ppi_ve fallback tunables (only used while the plane is DRM-withheld, or with captureBackend "ppi").
             // pz: positions measured round the ring. More = finer picture, slower per-zone refresh.
             // ppiSettleMs: -1 = the settle time the TV reports (default); >=0 overrides it.

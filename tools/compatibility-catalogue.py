@@ -11,6 +11,7 @@ OUTPUT = ROOT / "docs/DEVICES.md"
 HALO = {
     "validated": "Validated locally",
     "experimental_rgb": "RGB integration experimental; TV untested",
+    "experimental_full_frame": "Full-frame adapter experimental; TV untested",
     "candidate": "Candidate; TV untested",
     "not_integrated": "Adapter not integrated",
     "research": "Research only",

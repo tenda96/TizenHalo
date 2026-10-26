@@ -10,17 +10,16 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 flags=(-c Release --nologo -p:NuGetAudit=false -p:UseSharedCompilation=false)
 
 python3 tools/compatibility-catalogue.py --check
-python3 -m unittest discover -s tests -p 'test_compatibility_catalogue.py'
+python3 -m unittest discover -s tests -p 'test_*.py'
 
-version=$(sed -n 's/.*<manifest[^>]* version="\([^"]*\)".*/\1/p' app/tizen-manifest.xml)
-
-dotnet build app/TizenHalo.csproj "${flags[@]}"
-mkdir -p dist
-cp "app/bin/Release/tizen55/io.github.tenda96.TizenHalo-$version.tpk" "dist/TizenHalo-$version.tpk"
+python3 tools/build-profile.py "${1:-q74t-55}"
 
 dotnet build tests/LayoutTests.csproj "${flags[@]}"
 dotnet tests/bin/Release/net8.0/LayoutTests.dll
+for profile in q74t-55 rgb-55 s84f-90; do
+  dotnet tests/bin/Release/net8.0/LayoutTests.dll profile "compatibility/profiles/$profile.json"
+done
+dotnet tests/bin/Release/net8.0/LayoutTests.dll profile-invalid dist/.missing-capture-profile.json
+dotnet tests/bin/Release/net8.0/LayoutTests.dll profile-invalid app/config.example.json
 dotnet tests/bin/Release/net8.0/LayoutTests.dll interpolation
 if command -v node >/dev/null 2>&1; then node tests/layout-editor.test.cjs; else echo "node not found: editor test skipped"; fi
-
-python3 tools/verify-package.py "dist/TizenHalo-$version.tpk"

@@ -41,7 +41,7 @@ traced to evidence, and untested entries cannot be presented as supported device
 Done when: host checks and package checks pass, the existing path is preserved,
 and diagnostics identify the family without claiming a successful TV test.
 
-## Step 3 — Full-frame adapters (research)
+## Step 3 — Full-frame adapters (S84F integrated offline; Q80A in research)
 
 - Keep Q74T's caller-owned-buffer ABI as the verified reference adapter.
 - Review the upstream S84F/Tizen 9 layout independently of the Q74T layout.
@@ -56,7 +56,11 @@ and diagnostics identify the family without claiming a successful TV test.
 Done when: each implemented adapter has documented provenance, synthetic
 readback/bounds tests, a compatible package, and an opt-in owner test protocol.
 
-## Step 4 — Packaging and runtime compatibility (research)
+S84F has reached the offline gate with its named ARM32 layout and explicit Tizen 9
+test profile. Its uncertain timestamp/flip tail is unread; owner validation is
+pending. Q80A has not reached this gate.
+
+## Step 4 — Packaging and runtime compatibility (three test profiles built)
 
 - Check the .NET target, manifest API, launcher/service identity and dependency
   file names for each package profile.
@@ -65,9 +69,17 @@ readback/bounds tests, a compatible package, and an opt-in owner test protocol.
 - Record signing requirements per firmware; do not assume a partner certificate
   solves every `Operation not permitted` or `rc=-95` report.
 - Older Tizen releases may need a separate host instead of the present .NET app.
+- Prefer a few runtime packages with multiple validated capture paths. The user
+  explicitly clarified that TVs on the same 5.5 runtime should share a package
+  where possible. The separate RGB-5.5 artifact is for first-owner testing, not a
+  permanent one-package-per-TV architecture; its DLL is identical to Q74T's.
 
 Done when: profile-specific packages pass offline verification and their actual
 device startup/capture results are recorded. Host compilation is not enough.
+
+`q74t-55`, `rgb-55` and `s84f-90` compile and pass profile-aware package checks.
+Shared host tests cover package settings migration and restricted native methods.
+These revisions still need device regression/owner tests; no new model is promoted.
 
 ## Step 5 — Owner validation (waiting for devices)
 

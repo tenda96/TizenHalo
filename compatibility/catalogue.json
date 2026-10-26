@@ -152,10 +152,10 @@
       "capture_path": "Full video plane; ppi_ve RGB fallback",
       "evidence": "upstream_author",
       "result": "working",
-      "tizenhalo": "candidate",
+      "tizenhalo": "experimental_full_frame",
       "rate": "Upstream reports roughly 20–25 full captures/s; 24-point RGB set about 3.3–4.1 refreshes/s; LED sends are separate.",
       "observed_scope": "TizenAmbilight reference TV; video plane for available video, RGB fallback for withheld frames.",
-      "limitations": "Full-frame header differs from Q74T; complete RGB discovery alone does not validate TizenHalo on this model.",
+      "limitations": "Separate experimental s84f-90 adapter and Tizen 9 package now compile and pass synthetic layout/bounds checks. Main-only, up to 960x540; timestamp/flip tail unread. No TizenHalo on-device validation.",
       "source_ids": [
         "ambilight"
       ],

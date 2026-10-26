@@ -4,7 +4,13 @@
        uses a third-party runtime assembly, included below with its MIT license. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>tizen55</TargetFramework>
+    <HaloProfile Condition="'$(HaloProfile)'==''">q74t-55</HaloProfile>
+    <!-- SDK incremental resource copies otherwise retain the preceding profile's
+         metadata when two packages share the tizen55 output directory. -->
+    <TizenPackageDirName>tpkroot-$(HaloProfile)</TizenPackageDirName>
+    <TargetFramework Condition="'$(HaloProfile)'!='s84f-90'">tizen55</TargetFramework>
+    <TargetFramework Condition="'$(HaloProfile)'=='s84f-90'">tizen90</TargetFramework>
+    <TizenManifestFile Condition="'$(HaloGeneratedManifest)'!=''">$(HaloGeneratedManifest)</TizenManifestFile>
     <RootNamespace>TizenAmbilight</RootNamespace>
     <AssemblyName>TizenHalo</AssemblyName>
     <StartupObject>TizenHaloLauncher.Bootstrap</StartupObject>
@@ -22,6 +28,10 @@
        "res\**\*" (Tizen.NET.Sdk.Packaging.targets, TizenComputeTpkResourceFiles), which does
        not match on Linux, so the icon would silently never enter the TPK. Declare it explicitly. -->
   <ItemGroup>
+    <TizenTpkFiles Include="../compatibility/profiles/$(HaloProfile).json">
+      <TizenTpkSubDir>res/</TizenTpkSubDir>
+      <TizenTpkFileName>capture-profile.json</TizenTpkFileName>
+    </TizenTpkFiles>
     <PackageReference Include="Net.Codecrete.QrCodeGenerator" Version="2.0.4" />
     <Compile Include="../launcher/Program.cs" Link="Launcher.cs" />
     <Compile Include="../launcher/QrPng.cs" Link="QrPng.cs" />
@@ -57,6 +67,13 @@
       <TizenTpkFileName>config.json</TizenTpkFileName>
     </TizenTpkFiles>
   </ItemGroup>
+
+  <Target Name="ValidateHaloProfile" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(HaloProfile)'!='q74t-55' And '$(HaloProfile)'!='rgb-55' And '$(HaloProfile)'!='s84f-90'"
+           Text="Unknown HaloProfile. Use python3 tools/build-profile.py for supported profiles." />
+    <Error Condition="'$(HaloProfile)'=='s84f-90' And '$(HaloGeneratedManifest)'==''"
+           Text="S84F requires a matching Tizen 9 manifest. Use python3 tools/build-profile.py s84f-90." />
+  </Target>
 
 
 

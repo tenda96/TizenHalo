@@ -82,11 +82,16 @@ The timestamp tail must be checked against real alignment/offsets rather than a
 source comment. Inputs at `+0x00/+0x04` are sizes, `+0x08/+0x0c` dimensions and
 `+0x10/+0x14` are 32-bit pointers. This is distinct from Q74T.
 
-Next gate: factor a named full-frame layout contract, add synthetic header/stride
-and capacity tests, verify pointer width and timestamp alignment, then build an
-opt-in adapter profile. No auto-selection from `Tizen 9` alone. Upstream support
-and the MIT license make this a useful next implementation candidate, but it is
-not integrated in this branch.
+Now implemented as the explicit **experimental** `s84f-90` package profile and
+`VideoPlaneAbi.S84F`, separately from Q74T. It permits only `main`, allocates the
+upstream 960×540 caller-owned capacities, bounds returned geometry/pitches and
+rejects replaced caller pointers before copying. Synthetic tests distinguish the
+two layouts and their limits. The timestamp/flip tail remains unproven and is
+deliberately not read. No automatic format sweep or version-based selection.
+
+Next gate: owner confirmation of runtime startup, exact firmware and real fresh
+frames/colors/stability. Offline compilation is not an on-device validation.
+See [package profiles](BUILD-PROFILES.md).
 
 ## Q80A full frames — promising, incomplete native contract
 

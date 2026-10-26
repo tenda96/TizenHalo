@@ -1,0 +1,10 @@
+{
+  "id": "q74t-55",
+  "target_framework": "tizen55",
+  "api_version": "5.5",
+  "capture_backend": "video_plane",
+  "video_abi": "q74t-55-native-v1",
+  "default_method": "screen_video",
+  "default_capture_fps": 15,
+  "experimental": false
+}

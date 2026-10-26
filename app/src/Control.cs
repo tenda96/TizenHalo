@@ -79,7 +79,7 @@ namespace TizenAmbilight
                     // this switch. backend=1 selects the file path, anything else the video plane.
                     // backend=2 forces the ppi_ve hardware sampler; 0 (or anything else) = video plane, which
                     // hands over to the sampler by itself while the plane returns rc=-4 (DRM).
-                    case "backend": cfg.CaptureBackend = (iv == 1) ? "file" : (iv == 2) ? PpiCapture.BackendName : VideoPlaneCapture.BackendName;
+                    case "backend": cfg.CaptureBackend = CaptureProfile.Current.ResolveBackend((iv == 1) ? "file" : (iv == 2) ? PpiCapture.BackendName : VideoPlaneCapture.BackendName);
                                     L("backend switched to " + cfg.CaptureBackend); break;
                     case "ppibars": if (dv == 0 || dv == 1) PpiCapture.BarsEnabled = dv != 0; break;
                     case "ppigrid": if (dv == 1) PpiCapture.GridRequest = 1; break;

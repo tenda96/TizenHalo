@@ -3,8 +3,10 @@
 
 Usage: python3 tools/verify-package.py [path/to/package.tpk]
 Without an argument it checks dist/TizenHalo-<manifest version>.tpk.
+Use --profile rgb-55 or --profile s84f-90 for a nondefault test package.
 """
 import base64
+import argparse
 import hashlib
 import json
 import sys
@@ -12,6 +14,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 from urllib.parse import unquote
+import importlib.util
 
 NS = {"t": "http://tizen.org/ns/packages"}
 DSIG = "{http://www.w3.org/2000/09/xmldsig#}"
@@ -19,7 +22,14 @@ PACKAGE_ID = "io.github.tenda96.TizenHalo"
 
 root = Path(__file__).resolve().parent.parent
 version = ET.parse(root / "app/tizen-manifest.xml").getroot().attrib["version"]
-package = Path(sys.argv[1]) if len(sys.argv) > 1 else root / f"dist/TizenHalo-{version}.tpk"
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument("package",nargs="?")
+parser.add_argument("--profile",choices=("q74t-55","rgb-55","s84f-90"),default="q74t-55")
+args=parser.parse_args()
+package = Path(args.package) if args.package else root / f"dist/TizenHalo-{version}.tpk"
+spec=importlib.util.spec_from_file_location("build_profile",root/"tools/build-profile.py")
+profiles=importlib.util.module_from_spec(spec);spec.loader.exec_module(profiles)
+profile=profiles.load_profile(args.profile)
 
 with zipfile.ZipFile(package) as z:
     names = set(z.namelist())
@@ -27,7 +37,8 @@ with zipfile.ZipFile(package) as z:
     ui = manifest.find("t:ui-application", NS)
     service = manifest.find("t:service-application", NS)
     assert manifest.attrib["version"] == version
-    assert manifest.attrib["api-version"] == ui.attrib["api-version"] == service.attrib["api-version"] == "5.5"
+    assert manifest.attrib["api-version"] == ui.attrib["api-version"] == service.attrib["api-version"] == profile["api_version"]
+    assert json.loads(z.read("res/capture-profile.json")) == profile
     assert manifest.attrib["package"] == ui.attrib["appid"] == PACKAGE_ID
     assert service.attrib["appid"] == PACKAGE_ID + ".Service"
     assert ui.attrib["exec"] == service.attrib["exec"] == "TizenHalo.dll"
@@ -42,7 +53,7 @@ with zipfile.ZipFile(package) as z:
     assert json.loads(z.read("res/config.json")) == json.loads(config_source.read_text())
 
     deps = json.loads(z.read("TizenHalo.deps.json"))
-    assert deps["runtimeTarget"]["name"].startswith("Tizen,Version=v5.5")
+    assert deps["runtimeTarget"]["name"].startswith("Tizen,Version=v"+profile["api_version"]+"/") or deps["runtimeTarget"]["name"]=="Tizen,Version=v"+profile["api_version"]
     assert "Net.Codecrete.QrCodeGenerator/2.0.4" in deps["libraries"]
     assert z.read("bin/TizenHalo.dll")[:2] == b"MZ"
     assert z.read("bin/QrCodeGenerator.dll")[:2] == b"MZ"
@@ -73,6 +84,8 @@ with zipfile.ZipFile(package) as z:
 print(json.dumps({
     "package": package.name,
     "version": version,
+    "profile": profile["id"],
+    "api_version": profile["api_version"],
     "sha256": hashlib.sha256(package.read_bytes()).hexdigest(),
     "signed_file_digests_checked": checked,
     "checks": "PASS",

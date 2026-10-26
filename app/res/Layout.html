@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LED Studio · TizenHalo</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1119;--panel:#131e2a;--border:#293b4b;--ink:#eaf0f7;--muted:#99aebf;--accent:#4ce0b2;font:15px system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}*{box-sizing:border-box}body{margin:0}main{max-width:1400px;margin:auto;padding:28px 24px 110px}a{color:var(--accent)}header{display:flex;justify-content:space-between;gap:24px;align-items:center;margin:24px 0}.eyebrow{font-size:12px;letter-spacing:.2em;color:var(--accent)}h1{font-size:38px;margin:9px 0}h2{font-size:19px;margin:0 0 12px}h3{font-size:15px;margin:18px 0 10px}p{color:var(--muted);line-height:1.6;margin:8px 0 16px}.note{font-size:13px}.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;margin:16px 0}.columns{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,1fr);gap:20px}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{font-size:13px;display:block;color:var(--muted)}input,select{width:100%;border:1px solid #40586b;background:#0b141e;color:var(--ink);border-radius:8px;padding:10px;margin-top:6px;font:inherit}input[type=checkbox]{width:18px;vertical-align:middle;accent-color:var(--accent)}button,.button{font:inherit;font-weight:650;padding:11px 16px;border-radius:9px;background:#22384a;border:1px solid #385368;color:var(--ink);cursor:pointer;text-decoration:none;display:inline-block}button.primary{background:var(--accent);color:#092a22;border:0}button:disabled{opacity:.45;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.danger{color:#ffaba8}.pill{background:#1b3d36;color:#7ef1ce;padding:9px 15px;border-radius:24px;white-space:nowrap}svg{display:block;width:100%;border:1px solid var(--border);border-radius:12px;background:#0a131e;touch-action:none}#physical{aspect-ratio:1.5}#samples{aspect-ratio:16/9}svg circle,svg .zone{cursor:pointer}svg text{pointer-events:none;font-family:system-ui,sans-serif}#tip{min-height:42px;font-size:13px}.hidden{display:none!important}summary{cursor:pointer;color:var(--accent);padding:4px 0}details[open] summary{margin-bottom:16px}.footer{position:fixed;bottom:0;left:0;right:0;background:#0c141eee;border-top:1px solid var(--border);padding:16px 24px;z-index:5}.footer>div{max-width:1350px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}#message{font-size:14px}#message.error{color:#ffaba8}.count{font-size:23px;font-weight:750}.smallbuttons button{font-size:13px;padding:8px 11px}.separator{border-top:1px solid var(--border);margin:20px 0}.toolbar{margin:14px 0}.file{display:none}.help{max-width:780px}.step{color:var(--accent);margin-right:8px}#offline{color:#ffd28d}.topname{min-width:200px;flex:1}.canvas-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.canvas-title label{white-space:nowrap}.selection{background:#0b1621;padding:14px;border-radius:10px;margin-top:16px}@media(max-width:900px){.columns{grid-template-columns:1fr}h1{font-size:31px}header{align-items:flex-start}.footer>div{gap:12px}main{padding:20px 14px 130px}.card{padding:17px}.footer{padding:12px 14px}}@media(max-width:500px){header{display:block}.pill{display:inline-block;margin-top:8px}.footer button{padding:12px}.grid{gap:9px}}
+</style>
+<main>
+<a href="/" id="back">← TizenHalo settings</a>
+<header><div><div class="eyebrow">TIZENHALO / LED STUDIO</div><h1>Draw your light.</h1><p>The strip as it is mounted. The color from where you want it.</p></div><span class="pill"><span id="total" class="count">0</span> LEDs · front view</span></header>
+<div class="card"><div class="row between"><label class="topname">Layout name<input id="layoutName" maxlength="64" value="My layout"></label><div class="row"><button id="load">Reload from TV</button><button id="import">Import JSON</button><button id="export">Download JSON</button><input class="file" type="file" id="file" accept=".json,application/json"></div></div><p class="note" id="offline"></p>
+<details id="wizard"><summary><span class="step">01</span>Create a TV frame</summary><p class="note">Enter the LEDs per side. The frame replaces the current drawing; extra segments can be added afterwards.</p><div class="grid"><label>Top<input id="top" type="number" min="0" max="490" value="30"></label><label>Right<input id="right" type="number" min="0" max="490" value="18"></label><label>Bottom<input id="bottom" type="number" min="0" max="490" value="30"></label><label>Left<input id="left" type="number" min="0" max="490" value="18"></label><label>The first LED is…<select id="corner"><option value="0">Top left</option><option value="1">Top right</option><option value="2">Bottom right</option><option value="3">Bottom left</option></select></label><label>The strip continues…<select id="direction"><option value="cw">Clockwise</option><option value="ccw">Counter-clockwise</option></select></label><label>Color zone depth (%)<input id="depth" type="number" min="1" max="40" value="8"></label></div><div class="toolbar"><button id="generate">Generate frame</button></div></details></div>
+<div class="columns"><div>
+<section class="card"><div class="canvas-title"><h2><span class="step">02</span>The physical strip</h2><label><input id="numbers" type="checkbox"> Numbers</label></div><p class="note">Drag the dots to where the LEDs are mounted, furniture included. The order follows the cable; the white circle is LED 0.</p><svg id="physical" viewBox="-140 -140 1280 860" aria-label="Physical LED positions, front view"></svg><p id="tip">Select an LED to see its color zone on the right.</p><div class="row smallbuttons"><button id="addSegment">+ Draw a segment</button><button id="fit">Fit view</button><button id="undo" disabled>Undo</button></div>
+<div id="segmentBox" class="selection hidden"><h3>New segment</h3><div class="grid"><label>How many LEDs?<input id="segmentCount" type="number" min="1" max="490" value="20"></label><label>They take their color from…<select id="segmentEdge"><option value="auto">Nearest TV edge</option><option value="bottom">Bottom edge</option><option value="top">Top edge</option><option value="left">Left edge</option><option value="right">Right edge</option></select></label></div><p class="note">The first point is where the cable of this segment starts. New LEDs are added after the last existing one.</p><div class="row"><button id="confirmSegment" class="primary">Add</button><button id="cancelSegment">Cancel</button></div></div></section>
+<section class="card help"><h2>How to read it</h2><p><strong>Physical position</strong>: where the LED is mounted. <strong>Color zone</strong>: which part of the picture lights it. An LED under a TV stand can still follow the bottom edge of the picture.</p><p class="note">The colored preview only helps reading the zones; it is not the live video. Editing does not change the lights until you press “Apply to TV”.</p></section>
+</div><div>
+<section class="card"><h2><span class="step">03</span>The color zone</h2><p class="note">Click a zone to select its LED. Drag it to move the part of the picture it takes its color from.</p><svg id="samples" viewBox="0 0 1000 562.5" aria-label="Picture zones assigned to the LEDs"></svg>
+<div class="selection"><div class="row between"><label>Selected LED · index from 0<input id="selected" type="number" min="0" value="0"></label><div class="row smallbuttons"><button id="previous" aria-label="Previous LED">←</button><button id="next" aria-label="Next LED">→</button></div></div><h3>Picture area (%)</h3><div class="grid"><label>From left<input id="hmin" type="number" min="0" max="100" step="0.1"></label><label>To right<input id="hmax" type="number" min="0" max="100" step="0.1"></label><label>From top<input id="vmin" type="number" min="0" max="100" step="0.1"></label><label>To bottom<input id="vmax" type="number" min="0" max="100" step="0.1"></label></div><p class="note">Overlapping zones are allowed: several LEDs can follow the same part of the picture.</p><div class="row smallbuttons"><button id="first">Make this LED 0</button><button id="reverse">Reverse order</button><button id="duplicate">Duplicate LED</button><button id="delete" class="danger">Delete LED</button></div></div>
+<details><summary>Exact position and order</summary><div class="grid"><label>Physical X (% of TV width)<input id="physicalX" type="number" min="-200" max="300" step="0.1"></label><label>Physical Y (% of TV height)<input id="physicalY" type="number" min="-200" max="300" step="0.1"></label></div><p class="note">Vertically, 100% is the bottom edge of the TV; 120% is below it.</p><div class="row smallbuttons"><button id="up">Move earlier on the cable</button><button id="down">Move later on the cable</button></div></details></section>
+</div></div>
+</main><div class="footer"><div><span id="message" role="status" aria-live="polite">Loading layout…</span><button id="apply" class="primary" disabled>Apply to TV</button></div></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),offline=location.protocol==='file:';
+let doc={schema:1,name:'My layout',leds:[]},selected=0,history=[],dirty=false,drawing=false,endpoints=[],drag=null,view='-140 -140 1280 860';
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),round=x=>Math.round(x*10000)/10000;
+function notice(text,error=false){$('message').textContent=text;$('message').className=error?'error':'';}
+function valid(input){
+ const source=Array.isArray(input)?{leds:input}:input;
+ if(!source||typeof source!=='object'||(source.schema!==undefined&&source.schema!==1)||!Array.isArray(source.leds)||source.leds.length<4||source.leds.length>490)throw Error('Use 4 to 490 LEDs, in a leds array or a HyperHDR list.');
+ if(source.name!==undefined&&(typeof source.name!=='string'||source.name.length>64))throw Error('The name can be 64 characters at most.');
+ const leds=source.leds.map((led,i)=>{const r={};if(!led||typeof led!=='object')throw Error('LED '+i+': invalid zone.');
+  for(const k of ['hmin','hmax','vmin','vmax']){let n=led[k];if(typeof n!=='number'||!Number.isFinite(n)||n<0||n>1)throw Error('LED '+i+': picture coordinates must be between 0 and 1.');r[k]=round(n);}
+  if(r.hmin>=r.hmax||r.vmin>=r.vmax)throw Error('LED '+i+': zone empty or too small.');
+  for(const k of ['x','y'])if(led[k]!==undefined){if(typeof led[k]!=='number'||!Number.isFinite(led[k])||led[k]<-2||led[k]>3)throw Error('LED '+i+': invalid physical position.');r[k]=round(led[k]);}return r;});
+ return {schema:1,name:source.name||'My layout',leds};
+}
+function remember(){history.push(JSON.stringify(doc));if(history.length>35)history.shift();dirty=true;$('undo').disabled=false;}
+function commit(next){const clean=valid(next);remember();doc=clean;selected=clamp(selected,0,doc.leds.length-1);render();notice('Local changes · not applied to the TV yet');}
+function point(led){return {x:led.x===undefined?(led.hmin+led.hmax)/2:led.x,y:led.y===undefined?(led.vmin+led.vmax)/2:led.y};}
+function color(i){return 'hsl('+Math.round(i/Math.max(1,doc.leds.length)*300+15)+' 85% 62%)';}
+function zone(x,y,edge,span,depth){
+ if(edge==='auto'){const distances=[Math.abs(y),Math.abs(x-1),Math.abs(y-1),Math.abs(x)];edge=['top','right','bottom','left'][distances.indexOf(Math.min(...distances))];}
+ const horizontal=edge==='top'||edge==='bottom',at=clamp(horizontal?x:y),size=clamp(span,.004,1),a=clamp(at-size/2,0,1-size),b=a+size;
+ return {hmin:round(horizontal?a:edge==='left'?0:1-depth),hmax:round(horizontal?b:edge==='left'?depth:1),vmin:round(horizontal?(edge==='top'?0:1-depth):a),vmax:round(horizontal?(edge==='top'?depth:1):b),x:round(x),y:round(y)};
+}
+function segment(a,b,n,edge,depth){return Array.from({length:n},(_,i)=>{const t=(i+.5)/n,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;
+ const horizontal=edge==='top'||edge==='bottom'||(edge==='auto'&&Math.abs(b.x-a.x)>=Math.abs(b.y-a.y));return zone(x,y,edge,Math.max(.008,Math.abs(horizontal?b.x-a.x:b.y-a.y)/n),depth);});}
+function frame(counts,corner=0,reverse=false,depth=.08){
+ if(counts.some(n=>!Number.isInteger(n)||n<0||n>490)||counts.reduce((a,b)=>a+b,0)<4||counts.reduce((a,b)=>a+b,0)>490)throw Error('The sides must add up to 4–490 LEDs.');
+ let leds=[],points=[[{x:0,y:-.035},{x:1,y:-.035}],[{x:1.02,y:0},{x:1.02,y:1}],[{x:1,y:1.035},{x:0,y:1.035}],[{x:-.02,y:1},{x:-.02,y:0}]];
+ for(let e=0;e<4;e++)leds.push(...segment(points[e][0],points[e][1],counts[e],['top','right','bottom','left'][e],depth));
+ let start=counts.slice(0,corner).reduce((a,b)=>a+b,0)%leds.length;leds=leds.slice(start).concat(leds.slice(0,start));if(reverse)leds=[leds[0],...leds.slice(1).reverse()];return {schema:1,name:$('layoutName').value||'TV frame',leds};
+}
+function render(){
+ $('total').textContent=doc.leds.length;$('layoutName').value=doc.name;$('selected').max=Math.max(0,doc.leds.length-1);$('selected').value=selected;
+ let lines=doc.leds.map(led=>{const p=point(led);return (p.x*1000)+','+(p.y*562.5);}).join(' ');
+ let phys='<rect x="0" y="0" width="1000" height="562.5" rx="20" fill="#152838" stroke="#3c5b71" stroke-width="3"/><text x="500" y="280" fill="#7f9caf" text-anchor="middle" font-size="44">TV</text><text x="500" y="325" fill="#6a879b" text-anchor="middle" font-size="22">front view</text><polyline points="'+lines+'" fill="none" stroke="#466579" stroke-width="3"/>';
+ let samples='<defs><linearGradient id="picture"><stop stop-color="#d34f55"/><stop offset=".4" stop-color="#c59b40"/><stop offset=".7" stop-color="#289b93"/><stop offset="1" stop-color="#395a9d"/></linearGradient></defs><rect width="1000" height="562.5" fill="url(#picture)"/><rect x="80" y="80" width="840" height="402.5" rx="18" fill="#101f2c" fill-opacity=".88"/><text x="500" y="285" text-anchor="middle" font-size="29" fill="#9db2c0">Picture zones</text>';
+ doc.leds.forEach((led,i)=>{const p=point(led),c=color(i),active=i===selected;
+  phys+='<circle data-led="'+i+'" cx="'+p.x*1000+'" cy="'+p.y*562.5+'" r="'+(active?10:6)+'" fill="'+c+'" stroke="'+(i===0||active?'white':'#10202b')+'" stroke-width="'+(i===0?5:2)+'"/>';
+  if($('numbers').checked||active||i===0)phys+='<text x="'+p.x*1000+'" y="'+(p.y*562.5-16)+'" text-anchor="middle" font-size="19" fill="white">'+i+'</text>';
+  if(!active)samples+=rect(led,i,c,false);
+ });
+ if(doc.leds[selected])samples+=rect(doc.leds[selected],selected,'white',true);
+ if(endpoints.length)phys+='<circle cx="'+endpoints[0].x*1000+'" cy="'+endpoints[0].y*562.5+'" r="10" fill="white"/>';
+ if(endpoints.length===2)phys+='<line x1="'+endpoints[0].x*1000+'" y1="'+endpoints[0].y*562.5+'" x2="'+endpoints[1].x*1000+'" y2="'+endpoints[1].y*562.5+'" stroke="#4ce0b2" stroke-width="5" stroke-dasharray="10 6"/>';
+ $('physical').innerHTML=phys;$('physical').setAttribute('viewBox',view);$('samples').innerHTML=samples;
+ const led=doc.leds[selected];for(const k of ['hmin','hmax','vmin','vmax'])$(k).value=led?round(led[k]*100):'';
+ if(led){const p=point(led);$('physicalX').value=round(p.x*100);$('physicalY').value=round(p.y*100);}
+ $('apply').disabled=offline||doc.leds.length<4;$('undo').disabled=!history.length;
+}
+function rect(l,i,c,active){return '<rect class="zone" data-led="'+i+'" x="'+l.hmin*1000+'" y="'+l.vmin*562.5+'" width="'+(l.hmax-l.hmin)*1000+'" height="'+(l.vmax-l.vmin)*562.5+'" fill="'+c+'" fill-opacity="'+(active?.14:.05)+'" stroke="'+c+'" stroke-width="'+(active?4:1)+'"/>';}
+function fit(){const points=doc.leds.map(point).concat([{x:0,y:0},{x:1,y:1}]);let x=Math.min(...points.map(p=>p.x))*1000-100,y=Math.min(...points.map(p=>p.y))*562.5-100;
+ let w=Math.max(...points.map(p=>p.x))*1000+100-x,h=Math.max(...points.map(p=>p.y))*562.5+100-y;view=[x,y,w,h].join(' ');render();}
+function coords(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const t=p.matrixTransform(svg.getScreenCTM().inverse());return {x:t.x/1000,y:t.y/562.5};}
+for(const id of ['physical','samples']){
+ const svg=$(id);
+ svg.addEventListener('pointerdown',e=>{
+  const p=coords(svg,e);
+  if(id==='physical'&&drawing){endpoints.push({x:round(clamp(p.x,-2,3)),y:round(clamp(p.y,-2,3))});if(endpoints.length===2){drawing=false;$('segmentBox').classList.remove('hidden');$('tip').textContent='Set how many LEDs the segment has, then add it.';}else $('tip').textContent='Now click where the segment ends, following the cable direction.';render();return;}
+  const target=e.target.closest('[data-led]');if(!target)return;selected=Number(target.dataset.led);drag={id,start:p,led:{...doc.leds[selected]},saved:false};svg.setPointerCapture(e.pointerId);render();
+ });
+ svg.addEventListener('pointermove',e=>{if(!drag||drag.id!==id)return;const p=coords(svg,e),dx=p.x-drag.start.x,dy=p.y-drag.start.y,l=drag.led;if(!drag.saved){if(Math.abs(dx)+Math.abs(dy)<.001)return;remember();drag.saved=true;}
+  if(id==='physical'){const q=point(l);doc.leds[selected]={...l,x:round(clamp(q.x+dx,-2,3)),y:round(clamp(q.y+dy,-2,3))};}
+  else{const w=l.hmax-l.hmin,h=l.vmax-l.vmin,x=clamp(l.hmin+dx,0,1-w),y=clamp(l.vmin+dy,0,1-h);doc.leds[selected]={...l,hmin:round(x),hmax:round(x+w),vmin:round(y),vmax:round(y+h)};}
+  render();notice('Local changes · not applied to the TV yet');
+ });
+ svg.addEventListener('pointerup',()=>{drag=null;});svg.addEventListener('pointercancel',()=>{drag=null;});
+}
+function act(fn){try{fn();}catch(e){notice(e.message,true);}}
+function modify(fn){const before=selected;try{const next=JSON.parse(JSON.stringify(doc));fn(next);commit(next);}catch(e){selected=before;render();notice(e.message,true);}}
+$('generate').onclick=()=>act(()=>{commit(frame(['top','right','bottom','left'].map(k=>Number($(k).value)),Number($('corner').value),$('direction').value==='ccw',clamp(Number($('depth').value)/100,.01,.4)));selected=0;fit();$('wizard').open=false;});
+$('numbers').onchange=render;$('fit').onclick=fit;
+$('layoutName').onchange=()=>modify(d=>{d.name=$('layoutName').value;});
+$('selected').onchange=()=>{selected=clamp(Number($('selected').value)||0,0,doc.leds.length-1);render();};
+$('previous').onclick=()=>{selected=(selected+doc.leds.length-1)%doc.leds.length;render();};$('next').onclick=()=>{selected=(selected+1)%doc.leds.length;render();};
+for(const k of ['hmin','hmax','vmin','vmax'])$(k).onchange=()=>modify(d=>{d.leds[selected][k]=Number($(k).value)/100;});
+for(const [id,key] of [['physicalX','x'],['physicalY','y']])$(id).onchange=()=>modify(d=>{d.leds[selected][key]=Number($(id).value)/100;});
+$('first').onclick=()=>modify(d=>{d.leds=d.leds.slice(selected).concat(d.leds.slice(0,selected));selected=0;});
+$('reverse').onclick=()=>modify(d=>{d.leds=[d.leds[0],...d.leds.slice(1).reverse()];selected=selected===0?0:d.leds.length-selected;});
+$('duplicate').onclick=()=>modify(d=>{d.leds.splice(selected+1,0,{...d.leds[selected]});selected++;});
+$('delete').onclick=()=>modify(d=>{d.leds.splice(selected,1);});
+for(const [id,delta] of [['up',-1],['down',1]])$(id).onclick=()=>modify(d=>{const to=selected+delta;if(to<0||to>=d.leds.length)return;[d.leds[selected],d.leds[to]]=[d.leds[to],d.leds[selected]];selected=to;});
+$('undo').onclick=()=>{if(!history.length)return;doc=JSON.parse(history.pop());selected=clamp(selected,0,doc.leds.length-1);dirty=true;render();notice('Change undone · not applied to the TV yet');};
+function cancelSegment(){drawing=false;endpoints=[];$('segmentBox').classList.add('hidden');$('tip').textContent='Select an LED to see its color zone on the right.';render();}
+$('addSegment').onclick=()=>{cancelSegment();drawing=true;$('tip').textContent='Click where the segment starts, then where it ends, following the cable direction.';};
+$('cancelSegment').onclick=cancelSegment;
+$('confirmSegment').onclick=()=>act(()=>{const n=Number($('segmentCount').value);if(!Number.isInteger(n)||n<1||n+doc.leds.length>490)throw Error('The total cannot exceed 490 LEDs.');
+ const next={...doc,leds:doc.leds.concat(segment(endpoints[0],endpoints[1],n,$('segmentEdge').value,clamp(Number($('depth').value)/100,.01,.4)))};const first=doc.leds.length;commit(next);selected=first;cancelSegment();fit();});
+$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>131072)throw Error('File too large: 128 KB at most.');commit(JSON.parse(await file.text()));cancelSegment();fit();notice('File imported · check order and zones, then apply to the TV');}catch(error){notice(error.message,true);}finally{e.target.value='';}};
+$('export').onclick=()=>act(()=>{const data=valid(doc),blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tizenhalo-layout.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);notice('JSON exported · keep the file as a backup');});
+async function api(path,options){const r=await fetch(path,options),j=await r.json();if(!r.ok)throw Error(j.error||'Request failed');return j;}
+async function load(){try{if(dirty&&!confirm('Reload from the TV and discard local changes?'))return;const next=valid(await api('/api/layout'));doc=next;selected=0;history=[];dirty=false;cancelSegment();fit();notice('Layout loaded from the TV');}catch(e){notice(e.message,true);}}
+$('load').onclick=load;
+$('apply').onclick=async()=>{const button=$('apply');button.disabled=true;try{const clean=valid(doc);await api('/api/layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(clean)});if(JSON.stringify(valid(doc))===JSON.stringify(clean)){dirty=false;notice('Layout saved to the TV · applied from the next frame');}else notice('Layout sent. There are more local changes to apply.');}catch(e){notice(e.message,true);}finally{button.disabled=offline;}};
+addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+window.LayoutEditor={valid,frame,segment,point,getDocument:()=>JSON.parse(JSON.stringify(doc))};
+if(offline){$('load').disabled=true;$('back').classList.add('hidden');$('offline').textContent='Offline editor: import, edit and download the JSON. To apply it, open /layout at the TV address.';doc=frame([30,18,30,18]);render();notice('Offline editor · export the JSON when you are done');}else load();
+</script></html>

@@ -1,0 +1,10 @@
+{
+  "_comment": "TizenHalo install-time settings. Copy to config.json in this folder to bake your own values into a build, or let the Apps2Samsung install form fill in the wledIp, ledCount, mapOffset, mapReverse and ppiZones lines below (keep their exact formatting). Values here are only the starting point: anything changed later on the settings page is saved on the TV and wins. Every key is optional; see docs/CONFIGURATION.md.",
+  "wledIp": "",
+  "ledCount": 0,
+  "mapOffset": 0,
+  "mapReverse": 0,
+  "ppiZones": 24,
+  "controlUrl": "",
+  "probeEndpoint": ""
+}

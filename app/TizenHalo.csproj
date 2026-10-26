@@ -1,0 +1,66 @@
+<Project Sdk="Tizen.NET.Sdk/1.1.9">
+
+  <!-- Capture service plus an ElmSharp menu in one package. Only the menu's QR encoder
+       uses a third-party runtime assembly, included below with its MIT license. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>tizen55</TargetFramework>
+    <RootNamespace>TizenAmbilight</RootNamespace>
+    <AssemblyName>TizenHalo</AssemblyName>
+    <StartupObject>TizenHaloLauncher.Bootstrap</StartupObject>
+    <NoWarn>$(NoWarn);CS0649</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+
+  <!-- The Tizen SDK computes its default resource items with the Windows-only glob
+       "res\**\*" (Tizen.NET.Sdk.Packaging.targets, TizenComputeTpkResourceFiles), which does
+       not match on Linux, so the icon would silently never enter the TPK. Declare it explicitly. -->
+  <ItemGroup>
+    <PackageReference Include="Net.Codecrete.QrCodeGenerator" Version="2.0.4" />
+    <Compile Include="../launcher/Program.cs" Link="Launcher.cs" />
+    <Compile Include="../launcher/QrPng.cs" Link="QrPng.cs" />
+    <Compile Include="../launcher/Bootstrap.cs" Link="Bootstrap.cs" />
+    <TizenTpkFiles Include="res/THIRD-PARTY.txt">
+      <TizenTpkSubDir>res/</TizenTpkSubDir>
+      <TizenTpkFileName>THIRD-PARTY.txt</TizenTpkFileName>
+    </TizenTpkFiles>
+    <TizenTpkFiles Include="res/Settings.html">
+      <TizenTpkSubDir>res/</TizenTpkSubDir>
+      <TizenTpkFileName>Settings.html</TizenTpkFileName>
+    </TizenTpkFiles>
+    <TizenTpkFiles Include="res/Layout.html">
+      <TizenTpkSubDir>res/</TizenTpkSubDir>
+      <TizenTpkFileName>Layout.html</TizenTpkFileName>
+    </TizenTpkFiles>
+    <TizenTpkFiles Include="../LICENSE">
+      <TizenTpkSubDir>res/</TizenTpkSubDir>
+      <TizenTpkFileName>LICENSE.txt</TizenTpkFileName>
+    </TizenTpkFiles>
+    <TizenTpkFiles Include="res/TizenHalo.png">
+      <TizenTpkSubDir>shared/res/</TizenTpkSubDir>
+      <TizenTpkFileName>TizenHalo.png</TizenTpkFileName>
+    </TizenTpkFiles>
+    <!-- Install-time settings, shipped as res/config.json. A local config.json (gitignored) wins;
+         otherwise the committed template ships, which is what the Apps2Samsung install form patches. -->
+    <TizenTpkFiles Include="config.json" Condition="Exists('config.json')">
+      <TizenTpkSubDir>res/</TizenTpkSubDir>
+      <TizenTpkFileName>config.json</TizenTpkFileName>
+    </TizenTpkFiles>
+    <TizenTpkFiles Include="config.example.json" Condition="!Exists('config.json')">
+      <TizenTpkSubDir>res/</TizenTpkSubDir>
+      <TizenTpkFileName>config.json</TizenTpkFileName>
+    </TizenTpkFiles>
+  </ItemGroup>
+
+
+
+  <!-- Signing is deliberately NOT configured here: credentials live in profiles.xml.
+       This project must not embed passwords. Build only; sign/deploy is a separate step. -->
+
+</Project>

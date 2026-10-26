@@ -1,0 +1,17 @@
+# Build output
+bin/
+obj/
+dist/
+
+# Local SDK and package caches created by build.sh
+.dotnet-home/
+.nuget/
+
+# Your own install-time settings (config.example.json is the committed template)
+app/config.json
+
+# Tizen signing material never belongs in the repository
+*.p12
+profiles.xml
+
+.DS_Store

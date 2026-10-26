@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>disable</ImplicitUsings></PropertyGroup><ItemGroup><PackageReference Include="Net.Codecrete.QrCodeGenerator" Version="2.0.4"/>
+<Compile Include="../app/src/ServiceHeartbeat.cs"/>
+<Compile Include="../app/src/LaunchRole.cs"/>
+<Compile Include="../app/src/CaptureRetry.cs"/>
+<Compile Include="../app/src/PacketInterpolator.cs"/>
+<Compile Include="../app/src/InterpolatedOutput.cs"/>
+<Compile Include="../app/src/LocalSettings.cs"/>
+<Compile Include="../app/src/CustomLayout.cs"/>
+<Compile Include="../app/src/CaptureMethods.cs"/>
+<Compile Include="../app/src/SettingsServer.cs"/>
+<Compile Include="../app/src/ConfigFile.cs"/>
+<Compile Include="../app/src/Json.cs"/>
+<Compile Include="../app/src/FramePacer.cs"/>
+<Compile Include="../app/src/HdrProbe.cs"/>
+<Compile Include="../app/src/CaptureTrace.cs"/>
+<Compile Include="../app/src/TraceFrameMarker.cs"/>
+<Compile Include="../launcher/QrPng.cs"/>
+<Compile Include="../app/src/PngDecoder.cs"/><Compile Include="../app/src/RectLayout.cs"/><Compile Include="../app/src/ZoneEngine.cs"/><Compile Include="../app/src/VideoPlaneCapture.cs"/><Compile Include="../app/src/WledOutput.cs"/></ItemGroup></Project>

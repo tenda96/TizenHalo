@@ -1,0 +1,27 @@
+Hi! I've prepared a small diagnostic for your UN43RU7100FXZC / T-MSLAKUC-1500.5.
+
+Samsung lists the RU7100 as Tizen 5.0, while the current TizenHalo package targets
+5.5. This diagnostic is compiled specifically for 5.0. It does not capture video,
+change TV settings or control the LEDs. Its startup on your TV is still untested.
+
+1. Install TizenHalo-Compatibility-Probe-0.1.0-tizen50.tpk with Apps2Samsung,
+   using its normal per-TV signing/install process.
+2. Open "TizenHalo Compatibility Probe" and leave it open.
+3. Open the address shown on the TV from your phone/computer on the same network:
+   http://YOUR-TV-IP:8794/
+4. Download the compatibility report and send the JSON back, together with your
+   exact model and firmware version.
+5. If possible, also download the listed libvideo-capture, libsec-video-capture,
+   libvideoenhance, libavoc and libdisplay-capture-api libraries. Send these files
+   privately in a ZIP, not in a public issue. Some links may be absent or denied
+   by the TV sandbox; tell us if that happens. Identical hashes identify aliases,
+   so only one copy of each identical library is needed.
+6. Back on the TV closes the app and stops the local diagnostic server.
+
+If installation is refused or the diagnostic closes before showing an address,
+send the exact installation error or describe what appeared on screen.
+
+Why this helps: the official firmware is encrypted with the MuseL family key,
+which is not covered by the public candidate set tested so far. Reading the
+capture libraries from your running TV lets us inspect their actual ABI without
+root or changing firmware. Only then can we build a capture adapter for your TV.

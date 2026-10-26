@@ -76,6 +76,7 @@ The status line on the settings page and `http://<tv-ip>:8793/api/status` show w
 
 - [Configuration](docs/CONFIGURATION.md): settings, defaults, LED mapping, layout file format.
 - [Technical notes](docs/TECHNICAL.md): architecture, capture methods and measurements, local API, building.
+- [Compatibility research](docs/COMPATIBILITY.md): model/firmware evidence, the RU7100 investigation and the separate Tizen 5.0 diagnostic.
 - [Changelog](CHANGELOG.md)
 
 ## License and credits

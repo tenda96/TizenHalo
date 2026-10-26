@@ -120,3 +120,17 @@ Read `PORTABILITY-HANDOFF.md` and `BUILD-PROFILES.md` before changing package po
 - Next publication step, if requested: push the reviewed source and exact tag,
   create a GitHub **pre-release** with these assets/notes, retain stable v1.0.0,
   then collect owner reports before any support promotion.
+
+## 2026-10-26 — alpha published on owner's instruction
+
+- Pushed the source branch and annotated `v1.1.0-alpha.1` tag atomically using Git.
+  The release source is exactly `42f4e8bfaec83a696606d85ecf2b8913a20deb33`.
+- Created a draft source PR (#1) without merging/replacing main.
+- Uploaded ten allowlisted assets to a draft release. GitHub-assigned SHA-256
+  digests, sizes, source target and notes all matched the local prepared kit.
+- Published the release as a pre-release, explicitly not Latest. Confirmed the
+  public release endpoint and all assets. Stable v1.0.0 remains Latest with its
+  original artifact digest. No public asset or tag was overwritten.
+- Saved `releases/PUBLICATION-v1.1.0-alpha.1.md` with the release, source commit,
+  asset inventory, kit checksum, stable baseline and next owner-test tasks.
+- No on-device tests or support-status promotions were performed in publication.

@@ -5,6 +5,15 @@ Original online baseline: `8e4f9107bf05c444dedff5852cd806b5d633bab3`.
 RU7100 diagnostic commit: `da7ad2c`. Inspect `git log -3` for the current checkpoint
 commit; do not reset the branch to the online baseline.
 
+**Publication completed:** the owner authorized upload, and
+[v1.1.0-alpha.1](https://github.com/tenda96/TizenHalo/releases/tag/v1.1.0-alpha.1)
+is public with ten verified assets. Source tag remains pinned to
+`42f4e8bfaec83a696606d85ecf2b8913a20deb33`; later branch commits document the
+publication only. Stable v1.0.0 remains Latest and main is unchanged. Draft
+[PR #1](https://github.com/tenda96/TizenHalo/pull/1) contains the source changes.
+Read [the publication record](releases/PUBLICATION-v1.1.0-alpha.1.md) before
+rebuilding or considering a second upload. Do not recreate or move the alpha tag.
+
 **Latest stage:** experimental S84F full-frame adapter and profile-aware builds
 are now implemented and tested offline. Start with `docs/BUILD-PROFILES.md` for
 the current package boundary. The user clarified that TVs with the same usable
@@ -19,9 +28,9 @@ are prepared. After a clean source commit, `python3 tools/prepare-prerelease.py`
 verifies the three app TPKs plus the separate probe, checks factory config/runtime
 identity, and creates an allowlisted kit under `dist/v1.1.0-alpha.1/` with source
 commit, checksums and ZIP. It refuses a dirty source tree or an existing output.
-No push/tag/release publication is performed. The online release was checked:
-only stable v1.0.0 exists. The owner's last request was about readiness and the
-value of a public test release, not an explicit instruction to publish it yet.
+The preparation tool itself performs no push/tag/release publication. At that
+preparation checkpoint only stable v1.0.0 existed; the owner subsequently authorized
+publication and the current public state is recorded above.
 
 ## User objective and present boundary
 

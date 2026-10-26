@@ -77,7 +77,11 @@ namespace TizenAmbilight
                 {"resolution",st.LastDims},{"output_enabled",cfg.OutputEnabled}
                 ,{"capture_method",VideoPlaneCapture.ActiveMethod},{"capture_library",VideoPlaneCapture.ResolvedPath},
                 {"capture_symbol",VideoPlaneCapture.ResolvedSymbol},
-                {"capture_abi","q74t-55-native-v1"},{"requested_resolution",VideoPlaneCapture.ReqW+"x"+VideoPlaneCapture.ReqH},
+                {"capture_backend",cfg.CaptureBackend},{"rgb_api_family",PpiCapture.ApiFamily},
+                {"rgb_api_symbols",PpiCapture.ApiSymbols},{"rgb_init_error",PpiCapture.InitError},
+                {"capture_abi",cfg.CaptureBackend==PpiCapture.BackendName||_ppiAuto?"rgb-measure":
+                               cfg.CaptureBackend=="file"?"file-screenshot":"q74t-55-native-v1"},
+                {"requested_resolution",VideoPlaneCapture.ReqW+"x"+VideoPlaneCapture.ReqH},
                 {"capture_method_error",VideoPlaneCapture.SelectionError}
             };
             if (st.Window.Elapsed.TotalSeconds < cfg.StatsIntervalSec) return;

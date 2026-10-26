@@ -4,6 +4,14 @@ Compatibility is tracked by **model, firmware family, native ABI and runtime**.
 A Tizen version number or the presence of a function name is not enough to select
 a writable native structure safely. A successful host build is not a TV validation.
 
+The maintained [device evidence catalogue](DEVICES.md) records **14 device entries**
+and **12 pinned implementation references**, including negative reports and open PRs.
+Its source is `compatibility/catalogue.json`; the public table is generated and
+checked during the build. Follow the [staged plan](PORTABILITY-PLAN.md),
+[capture contracts](CAPTURE-CONTRACTS.md) and [handoff](PORTABILITY-HANDOFF.md).
+Only the local Q74T combination is validated in TizenHalo. Initial RGB-family
+integration is experimental on all other models.
+
 ## Current evidence
 
 | Target | Evidence | TizenHalo status |
@@ -35,6 +43,9 @@ The exact firmware is linked by the model's
 - None of the 19 public MSD11 candidates in the inspected unixtract catalogue
   decrypts a header with the expected TOC marker. The same audit succeeds with
   **NikeM** on the existing Q74T firmware, including valid padding.
+- A follow-up audit across 24 repositories/forks expanded the distinct public
+  candidates to **21**, with no successful MuseL header decryption. The owner
+  diagnostic is still pending; this portability work does not unblock decryption.
 - Therefore the RU7100 root filesystem and capture libraries have **not** been
   recovered from this encrypted download. No ABI, resolution or fps claim is
   made for that TV.

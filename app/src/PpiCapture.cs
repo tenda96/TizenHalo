@@ -10,9 +10,10 @@ namespace TizenAmbilight
     /// <summary>
     /// HARDWARE PIXEL SAMPLER, used when the video plane is withheld (DRM, rc=-4).
     ///
-    /// libvideoenhance.so exports a small RGB-measure API ("ppi_ve_*"). It is the interface Samsung's own
-    /// Tizen.TV.System.ContentAnalysis wraps for the Philips Hue Sync app, and it is documented nowhere
-    /// else. It measures the mean colour of a small block INSIDE the TV's video processor; it never hands
+    /// libvideoenhance.so exports a small RGB-measure API. Complete ppi_ve, ve and cs_ve families are
+    /// discovered at runtime; new family/device combinations require an opt-in owner test. The existing
+    /// sampler follows the hardware measurement contract used by Samsung's ContentAnalysis client.
+    /// It measures the mean colour of a small block INSIDE the TV's video processor; it never hands
     /// out a frame, so this backend reads a few spot colours, not pixels:
     ///
     ///     int ppi_ve_get_rgb_measure_condition(Condition* out)
@@ -51,9 +52,7 @@ namespace TizenAmbilight
     {
         public const string BackendName = "ppi";
         const string LibPath = "/usr/lib/libvideoenhance.so";
-        const string SymCond = "ppi_ve_get_rgb_measure_condition";
-        const string SymPos = "ppi_ve_set_rgb_measure_position";
-        const string SymPix = "ppi_ve_get_rgb_measure_pixel";
+        public static string ApiFamily="not probed", ApiSymbols="not probed";
 
         const int RTLD_LAZY = 0x00001;
         const int BufBytes = 256;
@@ -116,14 +115,14 @@ namespace TizenAmbilight
                 if (_cond == null)
                 {
                     // A TV without the library (or with a different export set) ends up here: report why and
-                    // stay on the video plane. Nothing below makes a ppi_ve call until every symbol resolved.
+                    // leave the sampler unavailable. Resolve a whole family before calling the condition API.
                     if (_lib == IntPtr.Zero) _lib = dlopen(LibPath, RTLD_LAZY);
                     if (_lib == IntPtr.Zero) _lib = dlopen("libvideoenhance.so", RTLD_LAZY);
                     if (_lib == IntPtr.Zero) return Fail("dlopen libvideoenhance.so failed (no hardware measure API on this TV)");
-                    IntPtr fc = dlsym(_lib, SymCond), fp = dlsym(_lib, SymPos), fx = dlsym(_lib, SymPix);
-                    if (fc == IntPtr.Zero || fp == IntPtr.Zero || fx == IntPtr.Zero)
-                        return Fail("dlsym failed: cond=" + (fc != IntPtr.Zero) + " pos=" + (fp != IntPtr.Zero) +
-                                    " pix=" + (fx != IntPtr.Zero));
+                    var api=RgbMeasureApi.Resolve(name=>dlsym(_lib,name));
+                    ApiFamily=api.Family;ApiSymbols=api.Diagnostics;
+                    if(!api.Complete)return Fail("No complete RGB measure family: "+ApiSymbols);
+                    IntPtr fc=api.Condition,fp=api.Position,fx=api.Pixel;
                     if (_condBuf == IntPtr.Zero) _condBuf = Marshal.AllocHGlobal(BufBytes);   // once: a retry must not leak
                     if (_colBuf == IntPtr.Zero) _colBuf = Marshal.AllocHGlobal(BufBytes);
                     Marshal.Copy(_zero, 0, _condBuf, BufBytes);
@@ -141,7 +140,7 @@ namespace TizenAmbilight
                     FullH = Marshal.ReadInt32(_condBuf, 20);
                     CondExtra6 = Marshal.ReadInt32(_condBuf, 24);
                     CondExtra7 = Marshal.ReadInt32(_condBuf, 28);
-                    if (CondRc < 0) return Fail("ppi_ve_get_rgb_measure_condition rc=" + CondRc);
+                    if (CondRc < 0) return Fail(ApiFamily+"_get_rgb_measure_condition rc=" + CondRc);
                     if (Slots <= 0 || FullW <= 0 || FullH <= 0 || BlockW <= 0 || BlockH <= 0)
                         return Fail("implausible condition: slots=" + Slots + " full=" + FullW + "x" + FullH +
                                     " block=" + BlockW + "x" + BlockH);
@@ -784,6 +783,8 @@ namespace TizenAmbilight
             var d = new Dictionary<string, object>
             {
                 { "ready", Ready },
+                { "api_family", ApiFamily },
+                { "api_symbols", ApiSymbols },
                 { "init_error", InitError ?? "" },
                 { "sampler_running", Running },
                 { "thread_errors", Interlocked.Read(ref ThreadErrors) },

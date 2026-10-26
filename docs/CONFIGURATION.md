@@ -108,11 +108,23 @@ Any key from the table above can go in `config.json`. These are only read from t
 | `staleMs`, `staleLevel` | `6000`, `0.35` | Dim to this level when the picture has not changed for this long. |
 | `whiteR`, `whiteG`, `whiteB` | `1.0` | White balance per channel. |
 | `wledTimeout` | `1` | Seconds after which WLED leaves realtime mode if packets stop. |
-| `captureBackend` | `video_plane` | `file` uses the slower screenshot-to-PNG path instead. |
+| `captureBackend` | `video_plane` | `ppi` forces the RGB point sampler independently of video capture; `file` uses the slower screenshot-to-PNG path. New TV/family combinations are experimental. |
 | `probeEndpoint`, `statsIntervalSec` | empty, `5` | Optional diagnostics collector; see [TECHNICAL.md](TECHNICAL.md#diagnostics). |
 | `controlUrl`, `enableLegacyControl` | empty, `false` | Optional development control channel. Off unless both are set. |
 
-`ppiZones` is kept for compatibility with TizenAmbilight's install form. It only matters for the TV's
-built-in color sampler, which this firmware does not provide.
+`ppiZones` controls the number of positions measured by the built-in RGB sampler, if available.
+It is also kept compatible with TizenAmbilight's install form. With two hardware slots and a
+20 ms settle time, 24 positions need at least 240 ms for a complete set, before other overhead.
+Interpolated LED sends can run faster; they do not add measurements.
+
+For an opt-in RGB test on a new device, copy `app/config.example.json` to the ignored
+`app/config.json`, retain your actual WLED/layout values and add `"captureBackend": "ppi"`.
+Build and install that package. The choice is currently an install-time/developer setting,
+not a persistent selector in the browser UI. It must be explicit on unknown full-frame ABIs;
+the default `video_plane` still uses the Q74T native contract.
+The sampler selects the first complete `ppi_ve`, `ve`, or `cs_ve` triplet, in that order.
+`/api/status` reports `capture_backend`, `rgb_api_family`, `rgb_api_symbols` and
+`rgb_init_error`; the larger telemetry report retains the sampler condition and counters.
+Availability of symbols is not proof of working measurements. See [native contracts](CAPTURE-CONTRACTS.md).
 
 A few more developer-only keys are read in `app/src/Config.cs`.

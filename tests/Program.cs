@@ -47,6 +47,8 @@ class Program
             System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             return;
         }
+        RgbMeasureApiTests.Run();
+        CaptureBackendStartupTests.Run();
         CustomizationTests.Run();
         TraceTests.Run();
         Check(LaunchRouting.Resolve("io.github.tenda96.TizenHalo")==LaunchRole.Menu,"Icon must select menu");

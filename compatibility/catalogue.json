@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "last_reviewed": "2026-10-26",
+  "scope": "Evidence catalogue, not a list of universally supported TVs. Current platform is reported installed OS, not inferred model year.",
+  "sources": [
+    {
+      "id": "ambilight",
+      "repository": "RitwickVerma/TizenAmbilight",
+      "commit": "ccb646600286a02150aa353db261ca3753a44a9e",
+      "license": "MIT",
+      "ref_kind": "default_branch",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "glow",
+      "repository": "DuckieOnQuacks/TizenGlow",
+      "commit": "f9caf54e7c6c9ad57e985785b7be4fe6231e2066",
+      "license": "GPL-3.0",
+      "ref_kind": "default_branch",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "hyper",
+      "repository": "reisxd/HyperTizen",
+      "commit": "9e71bf2f65e5b2e5d17e625ac5b60d680cc1a069",
+      "license": "GPL-3.0",
+      "ref_kind": "default_branch",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "bigsant",
+      "repository": "BigSant/HyperTizen",
+      "commit": "e6b4acea23bd4fd53a779ac23f371db70a55eda1",
+      "license": "GPL-3.0",
+      "ref_kind": "default_branch",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "sryeyes",
+      "repository": "SryEyes/HyperTizen",
+      "commit": "ba959ff12b1a0153a624a5c6e502b7a7b2700dad",
+      "license": "GPL-3.0",
+      "ref_kind": "default_branch",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "lowryn",
+      "repository": "lowryn/HyperTizen",
+      "commit": "2a05e073608ee5413ae6302ee389b756e0b42c67",
+      "license": "GPL-3.0",
+      "ref_kind": "default_branch",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "exzos",
+      "repository": "exzos28/tizen-os-ambilight",
+      "commit": "c8ce69c5ae1aa2af914f48dff2a0a1ee238d090a",
+      "license": "MIT",
+      "ref_kind": "default_branch",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "wled",
+      "repository": "matitoud/HyperTizen-WLED",
+      "commit": "920673b1728b494d7698cc631ef6db1e42643298",
+      "license": "GPL-3.0",
+      "ref_kind": "default_branch",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "r95h-pr",
+      "repository": "bashctrl/HyperTizen",
+      "commit": "77b416f8a8e78d4ab4a891b85062b4ecdba23ed5",
+      "license": "GPL-3.0",
+      "ref_kind": "open_pr",
+      "discussion": "https://github.com/reisxd/HyperTizen/pull/14",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "frame-pr",
+      "repository": "SebuZet/HyperTizen",
+      "commit": "2b6f154869c10f3fac224322a8c6d871ab1c6d33",
+      "license": "GPL-3.0",
+      "ref_kind": "open_pr",
+      "discussion": "https://github.com/reisxd/HyperTizen/pull/15",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "q80a-pr",
+      "repository": "dferchaud/HyperTizen",
+      "commit": "331fd870f6b935d9e0edde0b43e1fef661e0d6a4",
+      "license": "GPL-3.0",
+      "ref_kind": "open_pr",
+      "discussion": "https://github.com/lowryn/HyperTizen/pull/2",
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "halo-reference",
+      "repository": "tenda96/TizenHalo",
+      "commit": "8e4f9107bf05c444dedff5852cd806b5d633bab3",
+      "license": "MIT",
+      "ref_kind": "local_reference",
+      "checked": "2026-10-26"
+    }
+  ],
+  "devices": [
+    {
+      "id": "q74t",
+      "model": "QE55Q74T",
+      "current_tizen": "5.5",
+      "firmware": "T-NKMDEUC-2743.0",
+      "capture_path": "Q74T caller-owned full-frame ABI",
+      "evidence": "local_device",
+      "result": "working",
+      "tizenhalo": "validated",
+      "rate": "About 14–15 full captures/s sustained; bursts do not remove the observed 150-response/~10 s budget.",
+      "observed_scope": "Local firmware analysis and on-device video capture tests.",
+      "limitations": "Applies to this firmware; do not extend its ABI or rate limit to every 5.5 TV.",
+      "source_ids": [
+        "halo-reference"
+      ],
+      "evidence_urls": [
+        "https://github.com/tenda96/TizenHalo/blob/8e4f9107bf05c444dedff5852cd806b5d633bab3/docs/TECHNICAL.md"
+      ],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "ru7100",
+      "model": "UN43RU7100FXZC",
+      "current_tizen": "5.0",
+      "firmware": "T-MSLAKUC-1500.5",
+      "capture_path": "Unknown; read-only diagnostic prepared",
+      "evidence": "research",
+      "result": "unknown",
+      "tizenhalo": "research",
+      "rate": "No capture measurement.",
+      "observed_scope": "Official firmware identified, encrypted header audit completed; owner has not tested the app.",
+      "limitations": "21 public key candidates failed; no recovered capture ABI. Main TizenHalo package still targets 5.5.",
+      "source_ids": [
+        "halo-reference"
+      ],
+      "evidence_urls": [
+        "https://www.samsung.com/ca/support/model/UN43RU7100FXZC/"
+      ],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "s84f",
+      "model": "QN77S84FAEXZA",
+      "current_tizen": "9.0",
+      "firmware": null,
+      "capture_path": "Full video plane; ppi_ve RGB fallback",
+      "evidence": "upstream_author",
+      "result": "working",
+      "tizenhalo": "candidate",
+      "rate": "Upstream reports roughly 20–25 full captures/s; 24-point RGB set about 3.3–4.1 refreshes/s; LED sends are separate.",
+      "observed_scope": "TizenAmbilight reference TV; video plane for available video, RGB fallback for withheld frames.",
+      "limitations": "Full-frame header differs from Q74T; complete RGB discovery alone does not validate TizenHalo on this model.",
+      "source_ids": [
+        "ambilight"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "q80a",
+      "model": "QE55Q80AATXXC",
+      "current_tizen": "6.0",
+      "firmware": null,
+      "capture_path": "libsec-video-capture.so.0 / secvideo_api_capture_screen",
+      "evidence": "upstream_author",
+      "result": "working",
+      "tizenhalo": "not_integrated",
+      "rate": "No quantified capture FPS.",
+      "observed_scope": "Open PR reports rc=0, /frame.bmp with TV picture and FlatBuffers delivery to HyperHDR.",
+      "limitations": "Caller-owned Y/UV buffers and padded 256-byte header. Exact firmware, return geometry/stride contract, long-run and protected-video behavior are unverified. PR body uses the model name as a firmware label.",
+      "source_ids": [
+        "q80a-pr"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "qn90a",
+      "model": "GQ55QN90AATXZG",
+      "current_tizen": "6.0",
+      "firmware": "T-NKM2DEUC-2310.0",
+      "capture_path": "Upstream full-frame path blocked",
+      "evidence": "upstream_user",
+      "result": "blocked",
+      "tizenhalo": "not_integrated",
+      "rate": "No working capture measured.",
+      "observed_scope": "Retargeted package starts, capture rc=-95; libtzcapturec access denied.",
+      "limitations": "Follow-up explicitly confirms Partner distributor certificate was already in use. Signing alone did not fix this report.",
+      "source_ids": [
+        "ambilight"
+      ],
+      "evidence_urls": [
+        "https://github.com/RitwickVerma/TizenAmbilight/issues/2",
+        "https://github.com/RitwickVerma/TizenAmbilight/issues/2#issuecomment-6396580499"
+      ],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "q7f-cert",
+      "model": "QN55Q7FAAFXZC",
+      "current_tizen": "9",
+      "firmware": "T-RSLFAKUC-0090-1300.9",
+      "capture_path": "Full-frame library permission report",
+      "evidence": "upstream_user",
+      "result": "partial",
+      "tizenhalo": "candidate",
+      "rate": "Not supplied.",
+      "observed_scope": "User says changing certificate type to Partner resolved the reported issue.",
+      "limitations": "No raw frame/rate result supplied in that resolution; do not treat as measured full compatibility.",
+      "source_ids": [
+        "ambilight"
+      ],
+      "evidence_urls": [
+        "https://github.com/RitwickVerma/TizenAmbilight/issues/1",
+        "https://github.com/RitwickVerma/TizenAmbilight/issues/1#issuecomment-6357686799"
+      ],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "s85f",
+      "model": "QN55S85F",
+      "current_tizen": "9",
+      "firmware": null,
+      "capture_path": "Unresolved upstream no-output report",
+      "evidence": "upstream_user",
+      "result": "unknown",
+      "tizenhalo": "candidate",
+      "rate": "Not supplied.",
+      "observed_scope": "User reports app installed with Partner certificate and no visible errors, but receiver gets nothing.",
+      "limitations": "Failure stage unknown; this does not establish hardware incompatibility.",
+      "source_ids": [
+        "ambilight"
+      ],
+      "evidence_urls": [
+        "https://github.com/RitwickVerma/TizenAmbilight/issues/3"
+      ],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "r95h",
+      "model": "MRA65R95HAWXXY",
+      "current_tizen": "10",
+      "firmware": null,
+      "capture_path": "ppi_ve RGB measurement",
+      "evidence": "upstream_author",
+      "result": "working",
+      "tizenhalo": "experimental_rgb",
+      "rate": "2 slots, 16×16 blocks, reported 20 ms settle; no measured full-set rate.",
+      "observed_scope": "Open PR author reports valid 10-bit pixels and end-to-end HyperHDR 22 to Hue Entertainment.",
+      "limitations": "Point measurements, not full frames; PR unmerged when checked. TizenHalo not tested on this TV.",
+      "source_ids": [
+        "r95h-pr"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "frame",
+      "model": "The Frame / platform identifier 24_PTM_FTV_T09",
+      "current_tizen": "9",
+      "firmware": "TIZEN-TRUNK2025-PontusM-OSU-2024-HOTFIX-RELEASE_20260514.4",
+      "capture_path": "ppi_ve RGB measurement",
+      "evidence": "upstream_author",
+      "result": "working",
+      "tizenhalo": "experimental_rgb",
+      "rate": "2 slots, 16×16 blocks, 20 ms settle. ~25 Hz send-loop throttle is not measured point refresh.",
+      "observed_scope": "Open PR reports end-to-end Hyperion 2.2.1 to Hue.",
+      "limitations": "Consumer SKU not supplied. Autostart claim was retracted after boot testing; PR unmerged when checked.",
+      "source_ids": [
+        "frame-pr"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "qn90c",
+      "model": "QE55QN90CATXXU",
+      "current_tizen": "9",
+      "firmware": null,
+      "capture_path": "libvideoenhance RGB measurement",
+      "evidence": "upstream_author",
+      "result": "working",
+      "tizenhalo": "experimental_rgb",
+      "rate": "Author reports about 9 complete 8-point sets/s; HyperHDR 50 Hz smoothing is output.",
+      "observed_scope": "lowryn README reports working RGB fallback; video-capture library absent.",
+      "limitations": "Current OS may be an upgrade. Export prefix not established by the model report; do not select by model year.",
+      "source_ids": [
+        "lowryn"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "qn90d",
+      "model": "Samsung QN90D (exact SKU not supplied)",
+      "current_tizen": "9.0 (SDP)",
+      "firmware": null,
+      "capture_path": "libvideoenhance RGB → custom ESP32 UDP receiver",
+      "evidence": "upstream_author",
+      "result": "working",
+      "tizenhalo": "experimental_rgb",
+      "rate": "Implementation defaults: 20 points, 2 slots, 20 ms per batch (~5 complete sets/s before overhead); not a per-model measurement.",
+      "observed_scope": "Project README explicitly lists this model as confirmed working.",
+      "limitations": "Uses custom UDP/ESP32 firmware rather than stock WLED. TizenHalo reuses only the RGB interface concept; no device test yet.",
+      "source_ids": [
+        "exzos"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "q60d",
+      "model": "Samsung Q60D (exact SKU not supplied)",
+      "current_tizen": "9.0 (SDP)",
+      "firmware": null,
+      "capture_path": "libvideoenhance RGB → custom ESP32 UDP receiver",
+      "evidence": "upstream_author",
+      "result": "working",
+      "tizenhalo": "experimental_rgb",
+      "rate": "Implementation defaults: 20 points, 2 slots, 20 ms per batch (~5 complete sets/s before overhead); not a per-model measurement.",
+      "observed_scope": "Project README explicitly lists this model as confirmed working.",
+      "limitations": "Uses custom UDP/ESP32 firmware rather than stock WLED. TizenHalo reuses only the RGB interface concept; no device test yet.",
+      "source_ids": [
+        "exzos"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "s95f",
+      "model": "QE77S95FATXXH",
+      "current_tizen": "9",
+      "firmware": "1296.8",
+      "capture_path": "UI-only screen mirror; native paths restricted; external PC bridge",
+      "evidence": "upstream_author",
+      "result": "partial",
+      "tizenhalo": "not_integrated",
+      "rate": "UI-only 320×180 about 25–30 fps; PC FFmpeg bridge about 23.94–23.97 fps, neither proves TV-native protected-video capture.",
+      "observed_scope": "BigSant research reports UI mirroring, Plex video black; native capture denied. Current package is control-only.",
+      "limitations": "Experimental RM/encoder attempts wedged hardware and needed power cycle. Do not implement these as production fallbacks. External PC bridge is a separate architecture.",
+      "source_ids": [
+        "bigsant"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    },
+    {
+      "id": "qn75q7f-wled",
+      "model": "QN75Q7FAAGCZB",
+      "current_tizen": "9",
+      "firmware": null,
+      "capture_path": "8-point RGB → WLED DDP",
+      "evidence": "upstream_author",
+      "result": "working",
+      "tizenhalo": "experimental_rgb",
+      "rate": "About 5–6 complete 8-point sets/s measured; ~30 Hz interpolated sends are output. 4-point mode unmeasured.",
+      "observed_scope": "Author reports Netflix, YouTube and TV with WLED on this exact setup.",
+      "limitations": "40 addressable RGB pixels from 120 grouped physical LEDs. No universal support claim; TizenHalo RGB not tested here.",
+      "source_ids": [
+        "wled"
+      ],
+      "evidence_urls": [],
+      "checked": "2026-10-26"
+    }
+  ]
+}

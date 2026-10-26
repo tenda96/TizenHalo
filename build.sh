@@ -9,6 +9,9 @@ export NUGET_PACKAGES="${NUGET_PACKAGES:-$PWD/.nuget}"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 flags=(-c Release --nologo -p:NuGetAudit=false -p:UseSharedCompilation=false)
 
+python3 tools/compatibility-catalogue.py --check
+python3 -m unittest discover -s tests -p 'test_compatibility_catalogue.py'
+
 version=$(sed -n 's/.*<manifest[^>]* version="\([^"]*\)".*/\1/p' app/tizen-manifest.xml)
 
 dotnet build app/TizenHalo.csproj "${flags[@]}"

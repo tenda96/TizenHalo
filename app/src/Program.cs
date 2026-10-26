@@ -233,22 +233,23 @@ namespace TizenAmbilight
             L("png decoder self-test: " + selfTest);
 
             // ---- (1) resolve the capture library ----
-            bool usePlane = cfg.CaptureBackend == VideoPlaneCapture.BackendName || cfg.CaptureBackend == PpiCapture.BackendName;
-            string vErr = null;
-            if (usePlane)
+            string backendErr = CaptureBackendStartup.Initialize(cfg.CaptureBackend, () =>
             {
-                vErr = VideoPlaneCapture.Init();
+                string vErr = VideoPlaneCapture.Init();
                 if (vErr != null) L("VIDEO-PLANE backend NOT ready: " + vErr +
                                     " (set preference captureBackend=file to fall back)");
                 else L("video-plane backend ready: " + VideoPlaneCapture.ResolvedPath + " @ 0x" +
                        VideoPlaneCapture.FunctionPointer.ToInt64().ToString("x") +
                        " -> " + VideoPlaneCapture.PlaneW + "x" + VideoPlaneCapture.PlaneH +
                        " NV12 in memory, NO file");
-            }
-            string initErr = CaptureApi.Init();
-            if (initErr != null) L("capture library NOT ready: " + initErr);
-            else L("capture library ready: " + CaptureApi.ResolvedPath + " @ 0x" +
-                   CaptureApi.FunctionPointer.ToInt64().ToString("x"));
+                return vErr;
+            }, () => {
+                string initErr = CaptureApi.Init();
+                if (initErr != null) L("capture library NOT ready: " + initErr);
+                else L("capture library ready: " + CaptureApi.ResolvedPath + " @ 0x" +
+                       CaptureApi.FunctionPointer.ToInt64().ToString("x"));
+                return initErr;
+            });
 
             // ---- (2) writable directory discovery ----
             string captureDir = null;
@@ -287,10 +288,8 @@ namespace TizenAmbilight
 
             var stats = new Stats();
 
-            // Gate on the SELECTED backend only. This used to test the legacy file backend's library
-            // even when the video plane was selected, so a firmware without libdisplay-capture-api
-            // would idle forever although the default backend was ready.
-            string backendErr = usePlane ? vErr : initErr;
+            // Forced RGB sampling initializes on its worker in EnsurePpi, independently
+            // of both full-frame libraries. Other backends gate on their own library only.
             if (backendErr != null)
             {
                 Post(cfg, BuildReport(cfg, selfTest, backendErr, captureDir, discovery, "no_library", stats));
@@ -298,7 +297,7 @@ namespace TizenAmbilight
                 while (true)
                 {
                     Thread.Sleep(60000);
-                    string again = usePlane ? VideoPlaneCapture.Init() : CaptureApi.Init();
+                    string again = CaptureBackendStartup.Initialize(cfg.CaptureBackend, VideoPlaneCapture.Init, CaptureApi.Init);
                     if (again == null) { L("capture library became available"); MainLoop(cfg, selfTest, captureDir, discovery, stats); return; }
                 }
             }
@@ -371,7 +370,8 @@ namespace TizenAmbilight
                         L("Local settings applied, revision "+settingsRevision);
                     }
                     CaptureTrace.TargetFps=cfg.TargetFps;CaptureTrace.Interpolation=cfg.Interpolation;
-                    VideoPlaneCapture.SelectMethod(cfg.CaptureMethod);
+                    if(cfg.CaptureBackend==VideoPlaneCapture.BackendName)
+                        VideoPlaneCapture.SelectMethod(cfg.CaptureMethod);
                     string transfer=cfg.HdrMode=="auto"?HdrProbe.Mode:cfg.HdrMode;
                     cfg.Hdr=transfer=="hdr"||transfer=="hlg";
                     cfg.Gamut=cfg.Hdr;
@@ -835,6 +835,9 @@ namespace TizenAmbilight
                     }
 
                     // ---- 1. capture ----
+                    // The control channel can switch from RGB/video to file at runtime.
+                    // Load this library only when its backend is actually selected.
+                    if(!CaptureApi.Ready) CaptureApi.Init();
                     var csw = Stopwatch.StartNew();
                     CaptureResult res = CaptureApi.Capture(captureDir, CaptureFileName,
                                                            cfg.RequestWidth, cfg.RequestHeight,

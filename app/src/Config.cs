@@ -54,6 +54,7 @@ namespace TizenAmbilight
             public int TargetFps;               // cap on the capture rate; 0 = uncapped
             public double WhiteR, WhiteG, WhiteB;   // per-channel white balance
             public double CalRed, CalGreen, CalBlue, CalSat;   // output colour calibration (all backends)
+            public int CalRedTo, CalGreenTo, CalBlueTo;   // output target colours (hue correction, 0xRRGGBB)
             public double BandFrac;
             // ---- endpoints. Empty = that feature is off; nothing is sent anywhere by default. ----
             public string WledIp;
@@ -192,6 +193,21 @@ namespace TizenAmbilight
                 System.IO.Path.Combine(binDir, "..", "res", "config.json"));
         }
 
+        static int HexColour(string s, int dflt)
+        {
+            if (string.IsNullOrEmpty(s)) return dflt;
+            s = s.Trim(); if (s.StartsWith("#")) s = s.Substring(1);
+            if (s.Length != 6) return dflt;
+            int v = 0;
+            foreach (char ch in s)
+            {
+                int d = ch>='0'&&ch<='9' ? ch-'0' : ch>='a'&&ch<='f' ? ch-'a'+10 : ch>='A'&&ch<='F' ? ch-'A'+10 : -1;
+                if (d < 0) return dflt;
+                v = v*16 + d;
+            }
+            return v;
+        }
+
         static Config ReadConfig()
         {
             LoadConfigFile();
@@ -322,6 +338,10 @@ namespace TizenAmbilight
             c.CalGreen = Math.Max(0.0, Math.Min(2.0, PrefDouble("calGreen", 1.0)));
             c.CalBlue  = Math.Max(0.0, Math.Min(2.0, PrefDouble("calBlue",  1.0)));
             c.CalSat   = Math.Max(0.0, Math.Min(3.0, PrefDouble("calSat",   1.0)));
+            // target colours: what a pure red/green/blue should become (hue correction). Identity = primaries.
+            c.CalRedTo   = HexColour(PrefString("calRedTo",   "#ff0000"), 0xFF0000);
+            c.CalGreenTo = HexColour(PrefString("calGreenTo", "#00ff00"), 0x00FF00);
+            c.CalBlueTo  = HexColour(PrefString("calBlueTo",  "#0000ff"), 0x0000FF);
             // The plane carries PQ-encoded HDR on the reference TV (luma ceiling 148 on two unrelated
             // contents = the PQ code for 203 nits). Set 0 only if your device delivers SDR.
             c.Hdr = PrefInt("hdr", 1) != 0;

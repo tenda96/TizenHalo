@@ -74,7 +74,8 @@ namespace TizenAmbilight
                                              double gain, double gamma, double black,
                                              int mapOffset, bool mapReverse, int ledCount,
                                              double calRed = 1.0, double calGreen = 1.0,
-                                             double calBlue = 1.0, double calSat = 1.0)
+                                             double calBlue = 1.0, double calSat = 1.0,
+                                             int redTo = 0xFF0000, int greenTo = 0x00FF00, int blueTo = 0x0000FF)
         {
             if (colors == null) throw new ArgumentNullException(nameof(colors));
             if (ledCount < 1) ledCount = colors.Count;
@@ -134,6 +135,20 @@ namespace TizenAmbilight
                     r0 = (byte)(rc <= 0 ? 0 : rc >= 255 ? 255 : (int)(rc + 0.5));
                     g0 = (byte)(gc <= 0 ? 0 : gc >= 255 ? 255 : (int)(gc + 0.5));
                     b0 = (byte)(bc <= 0 ? 0 : bc >= 255 ? 255 : (int)(bc + 0.5));
+                }
+                // ---- TARGET-COLOUR MATRIX: shift a hue, which a per-channel trim cannot do (a pure
+                // red has no green to scale, so "red -> orange" needs green mixed in). redTo/greenTo/
+                // blueTo say what a pure red/green/blue should become (0xRRGGBB); the result is a linear
+                // blend of those three. Defaults are the pure primaries, i.e. identity (no change).
+                if (redTo != 0xFF0000 || greenTo != 0x00FF00 || blueTo != 0x0000FF)
+                {
+                    double fr = r0 / 255.0, fg = g0 / 255.0, fb = b0 / 255.0;
+                    double mr = fr * ((redTo >> 16) & 255) + fg * ((greenTo >> 16) & 255) + fb * ((blueTo >> 16) & 255);
+                    double mg = fr * ((redTo >> 8) & 255)  + fg * ((greenTo >> 8) & 255)  + fb * ((blueTo >> 8) & 255);
+                    double mb = fr * (redTo & 255)         + fg * (greenTo & 255)         + fb * (blueTo & 255);
+                    r0 = (byte)(mr <= 0 ? 0 : mr >= 255 ? 255 : (int)(mr + 0.5));
+                    g0 = (byte)(mg <= 0 ? 0 : mg >= 255 ? 255 : (int)(mg + 0.5));
+                    b0 = (byte)(mb <= 0 ? 0 : mb >= 255 ? 255 : (int)(mb + 0.5));
                 }
                 int luma = (299 * r0 + 587 * g0 + 114 * b0) / 1000;
                 int nl = t[luma];

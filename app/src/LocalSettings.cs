@@ -18,6 +18,8 @@ namespace TizenAmbilight
         public static bool Ready { get { lock(Gate) return _values!=null; } }
         public static string Error="";
         public static Dictionary<string,object> LiveStatus=new Dictionary<string,object>();
+        static bool IsHexColour(string s)
+        { foreach(char c in s) if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')||(c>='A'&&c<='F'))) return false; return true; }
         public static Dictionary<string,object> Defaults()
         {
             return new Dictionary<string,object> {
@@ -29,6 +31,7 @@ namespace TizenAmbilight
                 {"interpolation",true},{"outputFps",30},{"precisePacing",true},{"hdrMode","auto"},{"alpha",.5},{"alphaFast",.85},
                 {"saturation",1.25},{"gain",1.0},{"gamma",1.15},{"black",18},
                 {"calRed",1.0},{"calGreen",1.0},{"calBlue",1.0},{"calSat",1.0},
+                {"calRedTo","#ff0000"},{"calGreenTo","#00ff00"},{"calBlueTo","#0000ff"},
                 {"adaptiveGamma",false},{"bars",true},{"barRows",true},{"barThresh",18},
                 {"punch",0},{"enableLegacyControl",false}
             };
@@ -144,6 +147,12 @@ namespace TizenAmbilight
                     if(!(kv.Value is string)||!IPAddress.TryParse(((string)kv.Value).Trim(),out ip)||ip.AddressFamily!=AddressFamily.InterNetwork||ip.Equals(IPAddress.Any)||ip.GetAddressBytes()[0]>=224)
                         throw new ArgumentException("Enter the IPv4 address of the WLED controller");
                     next[kv.Key]=ip.ToString();
+                }
+                else if(kv.Key=="calRedTo"||kv.Key=="calGreenTo"||kv.Key=="calBlueTo")
+                {
+                    string hex=kv.Value as string; if(hex!=null)hex=hex.Trim().TrimStart('#');
+                    if(hex==null||hex.Length!=6||!IsHexColour(hex)) throw new ArgumentException(kv.Key+": use a #RRGGBB colour");
+                    next[kv.Key]="#"+hex.ToLowerInvariant();
                 }
                 else if(kv.Key=="hdrMode")
                 {

@@ -1057,7 +1057,8 @@ namespace TizenAmbilight
                                                                     cfg.Gain * punchGain * staleDim,
                                                                     effGamma, cfg.Black,
                                                                     cfg.MapOffset, cfg.MapReverse, cfg.LedCount,
-                                                                    cfg.CalRed, cfg.CalGreen, cfg.CalBlue, cfg.CalSat);
+                                                                    cfg.CalRed, cfg.CalGreen, cfg.CalBlue, cfg.CalSat,
+                                                                    cfg.CalRedTo, cfg.CalGreenTo, cfg.CalBlueTo);
                         if(cfg.Interpolation)InterpolatedOutput.Submit(cfg.WledIp,cfg.WledPort,payload,cfg.OutputFps);
                         else {
                             InterpolatedOutput.Stop();

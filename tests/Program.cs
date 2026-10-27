@@ -120,6 +120,16 @@ class Program
         Check(cp[4]==0 && cp[2]==100 && cp[3]==200, "Blue strength 0 removes only blue");
         cp = WledOutput.BuildDrgbMapped(cz,1,1,1,0,0,false,4, 1.0,1.0,1.0,0.0);
         Check(cp[2]==cp[3] && cp[3]==cp[4], "Saturation 0 collapses to grey");
+        // Target-colour matrix: default primaries are identity; a target with green shifts red toward
+        // orange (adds green), and does not touch other colours.
+        var tz = new ZoneColors(4); for (int i=0;i<4;i++){ tz.R[i]=255; tz.G[i]=0; tz.B[i]=0; }
+        cp = WledOutput.BuildDrgbMapped(tz,1,1,1,0,0,false,4, 1.0,1.0,1.0,1.0);
+        Check(cp[2]==255 && cp[3]==0 && cp[4]==0, "Default target colours leave red unchanged");
+        cp = WledOutput.BuildDrgbMapped(tz,1,1,1,0,0,false,4, 1.0,1.0,1.0,1.0, 0xFF7800, 0x00FF00, 0x0000FF);
+        Check(cp[2]==255 && cp[3]>=118 && cp[3]<=122 && cp[4]==0, "Red target toward orange adds green to reds");
+        var bz = new ZoneColors(4); for (int i=0;i<4;i++){ bz.B[i]=255; }
+        cp = WledOutput.BuildDrgbMapped(bz,1,1,1,0,0,false,4, 1.0,1.0,1.0,1.0, 0xFF7800, 0x00FF00, 0x0000FF);
+        Check(cp[2]==0 && cp[3]==0 && cp[4]==255, "A red target must not change blue");
         Check(WledOutput.BuildBlackout(300).Length == 902, "Blackout must cover every LED");
         Check(VideoPlaneCapture.Init().Contains("32-bit"), "Host must not call the ARM32 ABI");
         Check(VideoPlaneCapture.SupportedGeometry(new VideoPlaneResult { RetWidth=720, RetHeight=540 }),

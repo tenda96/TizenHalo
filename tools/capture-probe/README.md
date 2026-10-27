@@ -8,8 +8,8 @@ legacy capture library.
 What it does, and does not do:
 
 - It loads `libsec-video-capture.so.0.1.0` (or `.so.0` / `.so`) **directly**, independent of the
-  modern capture library, and calls `secvideo_api_capture_video_main` three times in a row, requesting
-  640×360 into caller-owned buffers.
+  modern capture library, and calls both `secvideo_api_capture_video_main` (video plane) and `secvideo_api_capture_screen`
+  (whole-screen composition), twice each, requesting 640×360 into caller-owned buffers.
 - It **never** captures on launch — only when you press the button on its web page.
 - It **never** drives the LEDs, changes any TV setting, or runs concurrent capture calls.
 - The caller buffers are sized for a UHD panel, so the library's own capacity check passes; that check
@@ -20,10 +20,10 @@ analysis of the owner's own library; nothing about colours, dimensions or stabil
 
 ## For the TV owner
 
-1. Sideload `TizenHalo-Capture-Probe-0.1.0-tizen50.tpk` with Apps2Samsung, using its normal per-TV
+1. Sideload `TizenHalo-Capture-Probe-0.2.0-tizen50.tpk` with Apps2Samsung, using its normal per-TV
    signing/install process. It coexists with other TizenHalo packages (different id and port).
-2. Start a known, bright, colourful picture on the TV — ideally a still image or a paused frame, not
-   a black screen or a menu.
+2. Put a bright, **solid-colour** picture on the TV — a full-screen red or blue image or video is
+   ideal. The whole-screen method captures a still image too, so a photo is fine.
 3. Open **TizenHalo Capture Probe** and leave its screen open.
 4. On a phone/computer on the same network, open `http://YOUR-TV-IP:8795/`.
 5. Press **Run capture test**. The report downloads automatically. Send that JSON back, together with:
@@ -37,11 +37,11 @@ what appeared on screen. A failure is still a useful result.
 ## What the report tells us
 
 Per call: the return code (`rc`), the returned width/height, the colour-format enum, the protection
-flag, the call duration, whether our buffer pointers were left in place, and a small centre-pixel
-sample. `rc = -4` means the content was protected. Because the firmware reports the same enum `0` for
-planar YUV420 and NV21, the sample reports both the NV12 and NV21 reading of the centre chroma bytes,
-so the real byte order can be settled from a known captured colour before any colour conversion is
-written.
+flag, the call duration, whether our buffer pointers were left in place, and a grid of pixel
+samples. `rc = -4` means the content was protected. Because the firmware reports the same enum `0` for
+planar YUV420 and NV21, the sample reports both the NV12 and NV21 reading of the brightest point's
+chroma bytes, so the real byte order can be settled from a known captured colour before any colour
+conversion is written.
 
 ## Build and verify
 
@@ -52,6 +52,6 @@ bash tools/capture-probe/build.sh
 ```
 
 This runs the host tests, builds the `tizen50` package, verifies it and copies
-`dist/TizenHalo-Capture-Probe-0.1.0-tizen50.tpk`. The host tests cover the header offsets, the ignored
+`dist/TizenHalo-Capture-Probe-0.2.0-tizen50.tpk`. The host tests cover the header offsets, the ignored
 modern pitch region, caller-pointer ownership, buffer bounds and the NV12/NV21 chroma order on
 synthetic data — no ARM code and no Samsung library are involved.

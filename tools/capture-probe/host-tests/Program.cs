@@ -83,6 +83,28 @@ class Tests
         CaptureContract.ReadChromaPair(c, cw, 999, 999, out first, out second);
         Check(first == -1 && second == -1, "Out-of-range chroma read returns -1, never throws");
 
-        Console.WriteLine("PASS: header offsets/round-trip, ignored modern pitch region, pointer ownership, buffer bounds, NV12/NV21 chroma order");
+        // 7. Grid sampling finds a bright coloured block in a mostly dark frame, and reports its
+        //    colour both ways, so a dark centre no longer hides real content.
+        int gw = 32, gh = 16, gcw = gw / 2;
+        var gy = new byte[gw * gh];
+        var gc = new byte[gcw * (gh / 2) * 2];
+        for (int i = 0; i < gy.Length; i++) gy[i] = 4;                 // dark everywhere
+        for (int yy = 8; yy < 12; yy++) for (int xx = 16; xx < 24; xx++) gy[yy * gw + xx] = 200;  // bright block
+        for (int cy = 4; cy < 6; cy++) for (int cx = 8; cx < 12; cx++)  // red-ish chroma under that block
+        { int at2 = 2 * (cy * gcw + cx); gc[at2] = 90; gc[at2 + 1] = 240; }
+        var grid = CaptureContract.SampleGrid(gy, gc, gw, gh);
+        Check((int)grid["y_min"] == 4 && (int)grid["y_max"] == 200, "Grid Y min/max span the dark field and the bright block");
+        Check((double)grid["lit_fraction"] > 0.0 && (double)grid["lit_fraction"] < 1.0, "Only part of the frame is lit");
+        var bright = (Dictionary<string, object>)grid["brightest"];
+        Check((int)bright["y_value"] == 200 && (int)bright["x"] >= 16 && (int)bright["x"] < 24, "Brightest point lands in the bright block");
+        var bnv12 = (Dictionary<string, object>)bright["if_nv12"];
+        var bnv21 = (Dictionary<string, object>)bright["if_nv21"];
+        Check((int)bnv12["u"] == 90 && (int)bnv12["v"] == 240, "NV12 reading of the bright colour");
+        Check((int)bnv21["v"] == 90 && (int)bnv21["u"] == 240, "NV21 reading swaps the bright colour");
+        Check(((List<object>)grid["probes"]).Count == 5, "Five fixed probe points reported");
+        var empty = CaptureContract.SampleGrid(null, null, 0, 0);
+        Check(empty.ContainsKey("error"), "No frame yields an error, not a throw");
+
+        Console.WriteLine("PASS: header offsets/round-trip, ignored modern pitch region, pointer ownership, buffer bounds, NV12/NV21 chroma order, grid sampling");
     }
 }

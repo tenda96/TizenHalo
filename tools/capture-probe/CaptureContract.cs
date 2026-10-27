@@ -137,6 +137,52 @@ namespace TizenHaloCaptureProbe
             first = chroma[at]; second = chroma[at + 1];
         }
 
+        /// <summary>Sample a grid across the frame: Y min/max/mean and how much of it is lit, plus the
+        /// colour at the brightest sampled point (both NV12 and NV21 readings) and a few fixed probes.
+        /// This survives a dark centre: wherever there is real colour, the brightest point reports it,
+        /// which is what settles the VU/UV order from a known captured colour.</summary>
+        public static Dictionary<string, object> SampleGrid(byte[] y, byte[] chroma, int width, int height)
+        {
+            var s = new Dictionary<string, object>();
+            if (y == null || width < 2 || height < 2) { s["error"] = "no frame to sample"; return s; }
+            int cw = width / 2;
+            const int Cols = 16, Rows = 9, LitThreshold = 32;
+            int yMin = 255, yMax = -1; long acc = 0; int count = 0, lit = 0, bx = width / 2, by = height / 2, best = -1;
+            for (int r = 0; r < Rows; r++)
+                for (int c = 0; c < Cols; c++)
+                {
+                    int px = (int)((c + 0.5) * width / Cols), py = (int)((r + 0.5) * height / Rows);
+                    int at = py * width + px; if (at < 0 || at >= y.Length) continue;
+                    int v = y[at];
+                    if (v < yMin) yMin = v; if (v > yMax) yMax = v; acc += v; count++;
+                    if (v > LitThreshold) lit++;
+                    if (v > best) { best = v; bx = px; by = py; }
+                }
+            s["y_min"] = yMin; s["y_max"] = yMax; s["y_mean"] = count > 0 ? (int)(acc / count) : 0;
+            s["grid_points"] = count; s["lit_points"] = lit;
+            s["lit_fraction"] = count > 0 ? Math.Round((double)lit / count, 3) : 0.0;
+
+            int first, second; ReadChromaPair(chroma, cw, bx / 2, by / 2, out first, out second);
+            s["brightest"] = new Dictionary<string, object>
+            {
+                {"x", bx}, {"y", by}, {"y_value", best},
+                {"if_nv12", new Dictionary<string, object> { {"u", first}, {"v", second} }},
+                {"if_nv21", new Dictionary<string, object> { {"v", first}, {"u", second} }},
+            };
+            var probes = new List<object>();
+            int[][] fixedPoints = { new[]{width/2,height/2}, new[]{width/4,height/4},
+                new[]{3*width/4,height/4}, new[]{width/4,3*height/4}, new[]{3*width/4,3*height/4} };
+            foreach (var p in fixedPoints)
+            {
+                int px = p[0], py = p[1], at = py * width + px;
+                int yv = (at >= 0 && at < y.Length) ? y[at] : -1;
+                ReadChromaPair(chroma, cw, px / 2, py / 2, out first, out second);
+                probes.Add(new Dictionary<string, object> { {"x", px}, {"y", py}, {"y_value", yv}, {"chroma_first", first}, {"chroma_second", second} });
+            }
+            s["probes"] = probes;
+            return s;
+        }
+
         /// <summary>A small, reportable pixel sample at the frame centre: the Y value and both chroma
         /// bytes under each naming, so the owner's capture tells us the real VU/UV order offline.</summary>
         public static Dictionary<string, object> SamplePixel(byte[] y, byte[] chroma, int width, int height)

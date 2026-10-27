@@ -1,5 +1,24 @@
 # Portability work log
 
+## 2026-10-27 — RU7100 first live capture + probe v0.2
+
+- Owner ran capture-probe v0.1 on the TV. FIRST on-hardware capture, and it worked: legacy library
+  loaded directly, three secvideo_api_capture_video_main calls returned rc=0, not protected, caller
+  pointers unchanged, geometry inside the buffers. The caller-owned header contract is confirmed on
+  hardware. Returned 640x240 for a 640x360 request. Frame was dark (video plane, no video playing),
+  so colour order (NV12 vs NV21) is still unresolved.
+- Built capture-probe v0.2: adds secvideo_api_capture_screen (whole-screen composition) so a still
+  image is captured too, and a 16x9 grid sample (Y min/max/mean, lit fraction, colour at the
+  brightest point, both NV12/NV21) instead of a single centre pixel. Owner message updated to ask for
+  a solid red/blue full-screen picture.
+
+Verification completed (offline):
+
+- Capture-probe v0.2 host tests: PASS (added grid-sampling fixtures).
+- tizen50 package 0.2.0 compiles with zero warnings/errors and passes signed-digest verification.
+- NOT verified: v0.2 on the TV. v0.1 on the TV proved capture works but returned no colour.
+  Package not published; no new tag or PR.
+
 ## 2026-10-27 — RU7100 capture probe (offline)
 
 - Reviewed the owner's legacy capture core from the private REA evidence and confirmed the

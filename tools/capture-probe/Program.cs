@@ -17,7 +17,7 @@ namespace TizenHaloCaptureProbe
     class App : CoreUIApplication
     {
         const int Port = 8795;
-        const int RequestWidth = 640, RequestHeight = 360, Calls = 3;
+        const int RequestWidth = 640, RequestHeight = 360, CallsPerMethod = 2;
 
         TcpListener server; volatile bool stopped;
         Window window;
@@ -53,12 +53,12 @@ namespace TizenHaloCaptureProbe
             string platform = Feature("http://tizen.org/feature/platform.version");
             environment = TizenAmbilight.Json.ToJson(new Dictionary<string, object>
             {
-                {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.1.0"},
+                {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.2.0"},
                 {"platform_version", platform},
                 {"model_name", Feature("http://tizen.org/feature/model_name")},
                 {"process_bits", IntPtr.Size * 8},
                 {"firmware", "Enter firmware version when sharing this report"},
-                {"request", new Dictionary<string, object> { {"width", RequestWidth}, {"height", RequestHeight}, {"calls", Calls} }},
+                {"request", new Dictionary<string, object> { {"width", RequestWidth}, {"height", RequestHeight}, {"calls_per_method", CallsPerMethod}, {"methods", new[]{"video_main","screen_full"}} }},
                 {"capture_invoked", false},
             });
 
@@ -70,7 +70,7 @@ namespace TizenHaloCaptureProbe
                 Text("Tizen " + platform + " · " + (IntPtr.Size * 8) + "-bit. No capture has run yet.", 180, 30);
                 Text("Open on your phone or computer, then start the test there:", 290, 28);
                 Text("http://" + Address() + ":" + Port + "/", 400, 38, "#52e2bb");
-                Text("The test makes " + Calls + " capture calls and does NOT drive the LEDs. Keep this screen open.", 540, 25);
+                Text("The test captures the video plane AND the whole screen. It does NOT drive the LEDs. Keep this screen open.", 540, 25);
                 Text("Back: close the probe", 720, 25);
             }
             catch (Exception e) { Text("Probe server failed: " + e.Message, 200, 28, "#ffb389"); }
@@ -136,9 +136,9 @@ namespace TizenHaloCaptureProbe
             html.Append("<style>body{font:18px system-ui;max-width:820px;margin:40px auto;padding:20px;background:#09121b;color:#edf5fa}a{color:#52e2bb}button{font:600 18px system-ui;background:#52e2bb;color:#06251d;border:0;border-radius:10px;padding:14px 22px;cursor:pointer}code{color:#9fe}</style>");
             html.Append("<h1>TizenHalo capture probe</h1>");
             html.Append("<p>Experimental Tizen 5.0 test. It asks the legacy capture library for ")
-                .Append(Calls).Append(" frames at ").Append(RequestWidth).Append("&times;").Append(RequestHeight)
-                .Append(", one after another. It does <b>not</b> drive the LEDs or change any TV setting.</p>");
-            html.Append("<p>Start a known video (a bright, colourful still is ideal) on the TV first, then run the test.</p>");
+                .Append(CallsPerMethod).Append(" frames at ").Append(RequestWidth).Append("&times;").Append(RequestHeight)
+                .Append(" from the video plane, then the same from the whole screen. It does <b>not</b> drive the LEDs or change any TV setting.</p>");
+            html.Append("<p>Put a bright, <b>solid-colour</b> picture on the TV first - a full-screen red or blue image or video is ideal - then run the test.</p>");
             html.Append("<p><button onclick=\"go()\">Run capture test</button> <span id=s></span></p>");
             html.Append("<p><a href='/api/environment'>Download environment info</a></p>");
             html.Append("<pre id=o style='white-space:pre-wrap;background:#0f1b27;padding:14px;border-radius:10px'></pre>");
@@ -155,14 +155,14 @@ namespace TizenHaloCaptureProbe
             {
                 var record = new Dictionary<string, object>
                 {
-                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.1.0"},
+                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.2.0"},
                     {"platform_version", Feature("http://tizen.org/feature/platform.version")},
                     {"model_name", Feature("http://tizen.org/feature/model_name")},
                     {"firmware", "Enter firmware version when sharing this report"},
                     {"capture_invoked", true},
                 };
                 Dictionary<string, object> run;
-                try { run = LegacyCapture.Run(RequestWidth, RequestHeight, Calls); }
+                try { run = LegacyCapture.Run(RequestWidth, RequestHeight, CallsPerMethod); }
                 catch (Exception e) { run = new Dictionary<string, object> { {"fatal", e.GetType().Name + ": " + e.Message} }; }
                 record["capture"] = run;
                 captureReport = TizenAmbilight.Json.ToJson(record);

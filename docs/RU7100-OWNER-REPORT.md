@@ -152,3 +152,34 @@ offline; it has not run on the TV**, and the owner has not returned a capture re
 Owner instructions are in `tools/capture-probe/README.md` and `OWNER-MESSAGE.txt`. The package is not
 published: it is a local deliverable awaiting a real capture result on the TV. Only after a successful
 capture (usable picture, correct colours, stable rate) should an LED-output profile be built.
+
+## First live capture result (2026-10-27) — capture works, picture was dark
+
+The owner ran capture-probe v0.1 on the TV. This is the **first real on-hardware capture** for this
+family, and it succeeded mechanically:
+
+- `libsec-video-capture.so.0.1.0` loaded directly (no modern library), symbol resolved.
+- All three `secvideo_api_capture_video_main` calls returned `rc = 0`, `protected = 0`, with our
+  caller pointers unchanged and the returned geometry inside the advertised buffers. The recovered
+  caller-owned header contract is therefore correct **on hardware**, not only in static analysis.
+- Returned geometry was **640×240** for a 640×360 request; durations 31–64 ms.
+
+But the frame was essentially black: centre Y was 1, 3, then 27 across the calls, chroma 128/128
+(neutral). The owner had the probe app in the foreground with no video playing, so the **video plane**
+was dark — `secvideo_api_capture_video_main` reads the video plane, not the on-screen composition, so a
+still image or menu on the graphics plane does not appear. Colour order (NV12 vs NV21) therefore
+remains unresolved: there was no real colour to read.
+
+### Capture probe v0.2
+
+To settle colour without depending on a video being played, v0.2:
+
+- also calls `secvideo_api_capture_screen` (whole-screen composition), so a solid-colour still image
+  is captured too, alongside `secvideo_api_capture_video_main`;
+- samples a 16×9 grid instead of a single centre pixel, reporting Y min/max/mean, the lit fraction and
+  the colour at the brightest point (both NV12 and NV21 readings), so a dark centre no longer hides
+  real content.
+
+Built and host-tested offline (grid-sampling fixtures added). Not yet run on the TV. The owner is asked
+to show a bright solid red or blue picture and re-run. Only once a captured frame carries a real,
+known colour can the VU/UV order be fixed and an LED-output profile considered.

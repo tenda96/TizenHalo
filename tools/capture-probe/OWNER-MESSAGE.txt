@@ -1,25 +1,20 @@
-Hi! This is the next step for your UN43RU7100FXZC / T-MSLAKUC-1500.5.
+Hi again! The first capture test worked - the TV did return frames. But the video plane was dark
+(nothing was playing), so we could not see any colour yet. This updated version fixes that.
 
-The read-only diagnostic you ran told us which capture library your TV has. This new app actually
-tries to capture a few frames with it, so we can see whether a real picture comes back. It does NOT
-drive the LEDs, change any TV setting, or capture anything until you press a button.
+What changed: it now captures BOTH the video plane AND the whole screen, and it samples the picture
+across a grid instead of just the centre. So this time a solid-colour still image is enough. It still
+does NOT drive the LEDs, change any TV setting, or capture anything until you press a button.
 
-1. Install TizenHalo-Capture-Probe-0.1.0-tizen50.tpk with Apps2Samsung, using its normal per-TV
-   signing/install process. It can be installed alongside the other TizenHalo apps.
-2. Put a bright, colourful picture on the TV first - a still photo or a paused frame is ideal.
-   Avoid a black screen, a menu or a thumbnail.
+1. Install TizenHalo-Capture-Probe-0.2.0-tizen50.tpk with Apps2Samsung (same per-TV signing/install
+   as before; you can replace the old one).
+2. Put a BRIGHT, SOLID-COLOUR picture full screen - a plain red or blue image or video is ideal.
+   A photo works now too.
 3. Open "TizenHalo Capture Probe" and leave its screen open.
-4. From your phone or computer on the same network, open:
+4. From your phone/computer on the same network, open:
    http://YOUR-TV-IP:8795/
-5. Press "Run capture test". A report file downloads on its own. Send that JSON back, and tell us:
+5. Press "Run capture test". A report downloads on its own. Send that JSON back, and tell us:
    - your exact model and firmware version,
-   - what was on screen during the test (which app/source, roughly which colours).
-6. Back on the TV closes the app and stops its local server.
+   - roughly what colour filled the screen during the test.
+6. Back on the TV closes the app and stops its server.
 
-It makes three capture calls at 640x360, one after another. If installation is refused, or the app
-closes before showing an address, send the exact error or describe what you saw. A failure is still
-a useful result - please send it too.
-
-One thing to know: this is the first time this capture path is tried on a TV like yours, so we do
-not yet know if it returns a usable picture, the right colours, or anything at all. That is exactly
-what this test is for. Only after a successful capture will we build an Ambilight version for your TV.
+If anything fails, send the error or describe what you saw - a failure is still useful. Thanks a lot!

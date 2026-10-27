@@ -1056,7 +1056,8 @@ namespace TizenAmbilight
                         byte[] payload = WledOutput.BuildDrgbMapped(toSend, (byte)cfg.WledTimeout,
                                                                     cfg.Gain * punchGain * staleDim,
                                                                     effGamma, cfg.Black,
-                                                                    cfg.MapOffset, cfg.MapReverse, cfg.LedCount);
+                                                                    cfg.MapOffset, cfg.MapReverse, cfg.LedCount,
+                                                                    cfg.CalRed, cfg.CalGreen, cfg.CalBlue, cfg.CalSat);
                         if(cfg.Interpolation)InterpolatedOutput.Submit(cfg.WledIp,cfg.WledPort,payload,cfg.OutputFps);
                         else {
                             InterpolatedOutput.Stop();

@@ -36,6 +36,8 @@ value is used. Invalid values in `config.json` are ignored one by one and the de
 | `saturation` | `1.25` | 0–3 | 1 is neutral. |
 | `gain` | `1.0` | 0.1–2 | Brightness. |
 | `gamma` | `1.15` | 1–3 | Higher values lift dark scenes. |
+| `calRed`, `calGreen`, `calBlue` | `1.0` | 0–2 | **Colour calibration** per channel, applied at the output for every capture method. 1.0 = unchanged. Lower a channel to fix a tint (e.g. blue looking cyan → lower `calGreen`). |
+| `calSat` | `1.0` | 0–3 | Saturation applied at the output, so the file/screenshot backend (RU7100) gets saturation too. 1.0 = unchanged. |
 | `adaptiveGamma` | `false` | | Adapt the tone curve to each scene's brightness. |
 | `black` | `18` | 0–60 | Below this level an LED is switched off. |
 | `bars` | `true` | | Detect black bars at the sides and sample the picture inside them. |

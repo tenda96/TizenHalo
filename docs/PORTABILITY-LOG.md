@@ -250,3 +250,13 @@ Read `PORTABILITY-HANDOFF.md` and `BUILD-PROFILES.md` before changing package po
 - Catalogue generator, eight Python tests and whitespace check pass. App code and
   public alpha binaries/tag are unchanged. Next gate is a bounded direct-legacy
   Tizen 5.0 capture probe with proper header/color tests, then an owner run.
+
+## 2026-10-27 — Output colour calibration (all profiles)
+
+- RU7100 ru7100-50 build confirmed running on the TV (/api/status: capturing 480x270, driving WLED).
+- Added per-strip colour calibration applied in WledOutput (output stage) so it reaches EVERY backend
+  (video plane, file/screenshot, ppi), unlike the capture-side saturation/white balance which the file
+  backend skips: calRed/calGreen/calBlue (0-2) channel trims and calSat (0-3) saturation, all default
+  1.0 (no-op). Fixes hue errors such as blue reading cyan (lower green). New settings keys, validation,
+  a "Colour calibration" settings section and a host test; all four profiles build and verify, full host
+  suite PASS. Shared app change, so every profile/release gets it.

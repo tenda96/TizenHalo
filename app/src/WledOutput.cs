@@ -72,7 +72,9 @@ namespace TizenAmbilight
         // the end of the ring and breaks the corner alignment, which is why it was rejected.
         public static byte[] BuildDrgbMapped(ZoneColors colors, byte timeoutSeconds,
                                              double gain, double gamma, double black,
-                                             int mapOffset, bool mapReverse, int ledCount)
+                                             int mapOffset, bool mapReverse, int ledCount,
+                                             double calRed = 1.0, double calGreen = 1.0,
+                                             double calBlue = 1.0, double calSat = 1.0)
         {
             if (colors == null) throw new ArgumentNullException(nameof(colors));
             if (ledCount < 1) ledCount = colors.Count;
@@ -113,6 +115,26 @@ namespace TizenAmbilight
                 // saturation loss plus a hue shift on real zone colours. Scaling by a common factor
                 // changes brightness only, so hue and saturation survive the tone map intact.
                 byte r0 = colors.R[i], g0 = colors.G[i], b0 = colors.B[i];
+                // ---- COLOUR CALIBRATION (universal: applied here so it reaches EVERY backend,
+                // including the file/screenshot path that skips the capture-side colour matrix).
+                // Saturation about luma, then a per-channel trim. All default to 1.0 (no-op), so an
+                // uncalibrated strip is byte-for-byte unchanged. This is the per-strip fix for a hue
+                // that reads wrong (e.g. blue looking cyan: lower the green trim a little).
+                if (calSat != 1.0 || calRed != 1.0 || calGreen != 1.0 || calBlue != 1.0)
+                {
+                    double rc = r0, gc = g0, bc = b0;
+                    if (calSat != 1.0)
+                    {
+                        double ly = 0.299 * r0 + 0.587 * g0 + 0.114 * b0;
+                        rc = ly + (rc - ly) * calSat;
+                        gc = ly + (gc - ly) * calSat;
+                        bc = ly + (bc - ly) * calSat;
+                    }
+                    rc *= calRed; gc *= calGreen; bc *= calBlue;
+                    r0 = (byte)(rc <= 0 ? 0 : rc >= 255 ? 255 : (int)(rc + 0.5));
+                    g0 = (byte)(gc <= 0 ? 0 : gc >= 255 ? 255 : (int)(gc + 0.5));
+                    b0 = (byte)(bc <= 0 ? 0 : bc >= 255 ? 255 : (int)(bc + 0.5));
+                }
                 int luma = (299 * r0 + 587 * g0 + 114 * b0) / 1000;
                 int nl = t[luma];
                 if (luma <= 0)

@@ -28,6 +28,7 @@ namespace TizenAmbilight
                 {"outputEnabled",true},{"targetFps",CaptureProfile.Current.DefaultFps},{"captureWidth",960},{"captureHeight",540},
                 {"interpolation",true},{"outputFps",30},{"precisePacing",true},{"hdrMode","auto"},{"alpha",.5},{"alphaFast",.85},
                 {"saturation",1.25},{"gain",1.0},{"gamma",1.15},{"black",18},
+                {"calRed",1.0},{"calGreen",1.0},{"calBlue",1.0},{"calSat",1.0},
                 {"adaptiveGamma",false},{"bars",true},{"barRows",true},{"barThresh",18},
                 {"punch",0},{"enableLegacyControl",false}
             };
@@ -111,6 +112,7 @@ namespace TizenAmbilight
             {"outputFps",new[]{30d,60}},{"targetFps",new[]{5d,60}},{"captureWidth",new[]{64d,1280}},{"captureHeight",new[]{64d,720}},
             {"ledsTop",new[]{1d,490}},{"ledsRight",new[]{1d,490}},{"ledsBottom",new[]{1d,490}},{"ledsLeft",new[]{1d,490}},
             {"alpha",new[]{.05,1}},{"alphaFast",new[]{.05,1}},{"saturation",new[]{0d,3}},
+            {"calRed",new[]{0d,2}},{"calGreen",new[]{0d,2}},{"calBlue",new[]{0d,2}},{"calSat",new[]{0d,3}},
             {"gain",new[]{.1,2}},{"gamma",new[]{1d,3}},{"black",new[]{0d,60}},
             {"barThresh",new[]{17d,40}},{"punch",new[]{0d,1}}
         };

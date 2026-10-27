@@ -109,6 +109,17 @@ class Program
         // Without a custom layout, the installer's offset rotates the standard frame onto the strip.
         packet = WledOutput.BuildDrgbMapped(colors, 1, 1, 1, 0, 1, false, 300);
         Check(packet[2]==colors.R[1] && packet[2+3*299]==colors.R[0], "First LED offset must rotate the frame");
+        // Colour calibration (output stage): defaults are a no-op; trims scale channels; saturation 0 greys.
+        var cz = new ZoneColors(4);
+        for (int i=0; i<4; i++){ cz.R[i]=100; cz.G[i]=200; cz.B[i]=250; }
+        var cp = WledOutput.BuildDrgbMapped(cz,1,1,1,0,0,false,4);
+        Check(cp[2]==100 && cp[3]==200 && cp[4]==250, "Calibration defaults must leave colour unchanged");
+        cp = WledOutput.BuildDrgbMapped(cz,1,1,1,0,0,false,4, 1.0,0.5,1.0,1.0);
+        Check(cp[2]==100 && cp[4]==250 && cp[3]>=99 && cp[3]<=101, "Green strength 0.5 halves green only");
+        cp = WledOutput.BuildDrgbMapped(cz,1,1,1,0,0,false,4, 1.0,1.0,0.0,1.0);
+        Check(cp[4]==0 && cp[2]==100 && cp[3]==200, "Blue strength 0 removes only blue");
+        cp = WledOutput.BuildDrgbMapped(cz,1,1,1,0,0,false,4, 1.0,1.0,1.0,0.0);
+        Check(cp[2]==cp[3] && cp[3]==cp[4], "Saturation 0 collapses to grey");
         Check(WledOutput.BuildBlackout(300).Length == 902, "Blackout must cover every LED");
         Check(VideoPlaneCapture.Init().Contains("32-bit"), "Host must not call the ARM32 ABI");
         Check(VideoPlaneCapture.SupportedGeometry(new VideoPlaneResult { RetWidth=720, RetHeight=540 }),

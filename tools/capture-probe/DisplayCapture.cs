@@ -58,7 +58,7 @@ namespace TizenHaloCaptureProbe
         static string LastError() { IntPtr e = dlerror(); return e == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(e); }
 
         /// <summary>One screenshot to a PNG in outDir, decoded and sampled. label just tags the record.</summary>
-        public Dictionary<string, object> CaptureOnce(string outDir, string fileName, int width, int height)
+        public Dictionary<string, object> CaptureOnce(string outDir, string fileName, int width, int height, int compress = 0)
         {
             var record = new Dictionary<string, object> { {"symbol", Symbol}, {"library_loaded", LibraryLoaded} };
             if (!Ready) { record["error"] = OpenError ?? "library not ready"; return record; }
@@ -74,7 +74,7 @@ namespace TizenHaloCaptureProbe
                 name = Marshal.StringToHGlobalAnsi(fileName);
                 Marshal.WriteInt32(req, OffAppType, 4);     // source
                 Marshal.WriteInt32(req, OffMode, 0);
-                Marshal.WriteInt32(req, OffCompress, 0);    // PNG
+                Marshal.WriteInt32(req, OffCompress, compress);    // 0 = PNG, 1 = JPEG
                 Marshal.WriteInt32(req, OffQuality, 90);
                 Marshal.WriteIntPtr(req, OffDir, dir);
                 Marshal.WriteIntPtr(req, OffName, name);
@@ -100,7 +100,10 @@ namespace TizenHaloCaptureProbe
                 long bytes = new FileInfo(file).Length; record["file_bytes"] = bytes;
                 try
                 {
-                    var img = TizenAmbilight.PngDecoder.DecodeFile(file);
+                    var dsw = Stopwatch.StartNew();
+                    var img = compress == 1 ? TizenAmbilight.JpegDecoder.DecodeFile(file) : TizenAmbilight.PngDecoder.DecodeFile(file);
+                    dsw.Stop();
+                    record["decode_ms"] = Math.Round(dsw.Elapsed.TotalMilliseconds, 2);
                     record["decoded"] = new Dictionary<string, object> { {"width", img.Width}, {"height", img.Height} };
                     record["sample"] = CaptureContract.SampleGridRgba(img.Rgba, img.Width, img.Height);
                 }

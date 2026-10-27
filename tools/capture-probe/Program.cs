@@ -62,7 +62,7 @@ namespace TizenHaloCaptureProbe
             string platform = Feature("http://tizen.org/feature/platform.version");
             environment = TizenAmbilight.Json.ToJson(new Dictionary<string, object>
             {
-                {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.4.0"},
+                {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.5.0"},
                 {"platform_version", platform}, {"model_name", Feature("http://tizen.org/feature/model_name")},
                 {"process_bits", IntPtr.Size * 8},
                 {"firmware", "Enter firmware version when sharing this report"},
@@ -132,6 +132,7 @@ namespace TizenHaloCaptureProbe
             string path = request[1];
             if (path == "/api/environment") { Reply(stream, 200, "application/json", Bytes(environment), "tizenhalo-capture-environment.json"); return; }
             if (path == "/api/capture-test") { Reply(stream, 200, "application/json", Bytes(RunCaptureTest()), "tizenhalo-capture-report.json"); return; }
+            if (path == "/api/benchmark") { Reply(stream, 200, "application/json", Bytes(RunBenchmark()), "tizenhalo-fps-benchmark.json"); return; }
             if (path == "/api/report")
             {
                 if (captureReport == null) { Reply(stream, 404, "text/plain", Bytes("Run the capture test first")); return; }
@@ -145,10 +146,12 @@ namespace TizenHaloCaptureProbe
             html.Append("<h1>TizenHalo capture probe</h1>");
             html.Append("<p>This test paints full-screen <b>red, green and blue</b> on the TV itself and tries to capture each one, as a PNG screenshot and through the video path. You don't need to show a photo or leave the app in the background. The TV screen will flash those colours for a moment — that's expected. It does <b>not</b> drive the LEDs or change any TV setting.</p>");
             html.Append("<p><button onclick=\"go()\">Run capture test</button> <span id=s></span></p>");
+            html.Append("<p><b>FPS benchmark</b>: times every capture method and resolution to find the fastest. Just press it; the screen may flicker. It does not drive the LEDs.</p>");
+            html.Append("<p><button onclick=\"bench()\">Run FPS benchmark</button> <span id=sb></span></p>");
             html.Append("<p><a href='/api/environment'>Download environment info</a></p>");
             html.Append("<pre id=o style='white-space:pre-wrap;background:#0f1b27;padding:14px;border-radius:10px'></pre>");
             html.Append("<p>Send the downloaded report back to the maintainer, with your exact model and firmware. Close with Back on the TV.</p>");
-            html.Append("<script>async function go(){var s=document.getElementById('s');s.textContent='running... the TV will flash colours';try{var r=await fetch('/api/capture-test');var t=await r.text();document.getElementById('o').textContent=t;var b=new Blob([t],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tizenhalo-capture-report.json';a.click();s.textContent='done - report downloaded';}catch(e){s.textContent='error: '+e;}}</script>");
+            html.Append("<script>async function go(){var s=document.getElementById('s');s.textContent='running... the TV will flash colours';try{var r=await fetch('/api/capture-test');var t=await r.text();document.getElementById('o').textContent=t;var b=new Blob([t],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tizenhalo-capture-report.json';a.click();s.textContent='done - report downloaded';}catch(e){s.textContent='error: '+e;}}async function bench(){var s=document.getElementById('sb');s.textContent='benchmarking all methods, please wait...';try{var r=await fetch('/api/benchmark');var t=await r.text();document.getElementById('o').textContent=t;var b=new Blob([t],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tizenhalo-fps-benchmark.json';a.click();s.textContent='done - benchmark downloaded';}catch(e){s.textContent='error: '+e;}}</script>");
             Reply(stream, 200, "text/html; charset=utf-8", Bytes(html.ToString()));
         }
 
@@ -174,6 +177,84 @@ namespace TizenHaloCaptureProbe
             { EcoreMainloop.Post(() => { try { paint.Hide(); } catch { } finally { done.Set(); } }); done.Wait(2000); }
         }
 
+        static Dictionary<string, object> Bench(string label, int n, Func<Dictionary<string, object>> capture)
+        {
+            double nativeSum = 0, decodeSum = 0; int ok = 0, calls = 0; Dictionary<string, object> last = null;
+            for (int i = 0; i < n; i++)
+            {
+                var r = capture(); last = r; calls++;
+                object v;
+                if (r.TryGetValue("rc", out v) && Convert.ToInt32(v) == 0) ok++;
+                if (r.TryGetValue("duration_ms", out v)) nativeSum += Convert.ToDouble(v);
+                if (r.TryGetValue("decode_ms", out v)) decodeSum += Convert.ToDouble(v);
+            }
+            double avgN = calls > 0 ? nativeSum / calls : 0, avgD = calls > 0 ? decodeSum / calls : 0;
+            var m = new Dictionary<string, object>
+            {
+                {"method", label}, {"calls", calls}, {"ok", ok},
+                {"avg_native_ms", Math.Round(avgN, 2)}, {"avg_decode_ms", Math.Round(avgD, 2)},
+                {"capture_fps", avgN > 0 ? Math.Round(1000.0 / avgN, 2) : 0.0},
+                {"effective_fps", (avgN + avgD) > 0 ? Math.Round(1000.0 / (avgN + avgD), 2) : 0.0},
+            };
+            object o;
+            if (last != null && last.TryGetValue("result", out o)) m["result"] = o;
+            if (last != null && last.TryGetValue("ret_width", out o)) m["ret_width"] = o;
+            if (last != null && last.TryGetValue("ret_height", out o)) m["ret_height"] = o;
+            if (last != null && last.TryGetValue("sample", out o)) m["sample"] = o;
+            if (last != null && last.TryGetValue("decode_error", out o)) m["decode_error"] = o;
+            if (last != null && last.TryGetValue("native_exception", out o)) m["native_exception"] = o;
+            return m;
+        }
+
+        string RunBenchmark()
+        {
+            if (running) return "{\"error\":\"a test is already running\"}";
+            running = true;
+            try
+            {
+                const int N = 15;
+                var record = new Dictionary<string, object>
+                {
+                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.5.0"}, {"benchmark", true},
+                    {"platform_version", Feature("http://tizen.org/feature/platform.version")},
+                    {"model_name", Feature("http://tizen.org/feature/model_name")},
+                    {"firmware", "Enter firmware version when sharing this report"},
+                    {"iterations_per_method", N},
+                    {"note", "Foreground speed benchmark: capture (and decode) time per method/resolution, to find the fastest. Content may just be the app UI \u2014 timing is the point here."},
+                };
+                string dataDir; try { dataDir = Application.Current.DirectoryInfo.Data; } catch { dataDir = "/tmp"; }
+                var results = new List<object>();
+                try
+                {
+                    using (var sv = new LegacyCapture())
+                    using (var dc = new DisplayCapture())
+                    {
+                        record["secvideo_library"] = sv.LibraryLoaded;
+                        record["screenshot_library"] = dc.LibraryLoaded;
+                        if (sv.Ready)
+                        {
+                            results.Add(Bench("secvideo_video_main (YUV in memory)", N, () => sv.CaptureOnce(LegacyCapture.VideoMainSymbol, 640, 360)));
+                            results.Add(Bench("secvideo_screen (YUV in memory)", N, () => sv.CaptureOnce(LegacyCapture.ScreenSymbol, 640, 360)));
+                        }
+                        if (dc.Ready)
+                        {
+                            int[][] sizes = { new[] { 480, 270 }, new[] { 320, 180 } };
+                            foreach (var sz in sizes)
+                            {
+                                results.Add(Bench("dc_request_png_" + sz[0] + "x" + sz[1], N, () => dc.CaptureOnce(dataDir, "bench.png", sz[0], sz[1], 0)));
+                                results.Add(Bench("dc_request_jpeg_" + sz[0] + "x" + sz[1], N, () => dc.CaptureOnce(dataDir, "bench.jpg", sz[0], sz[1], 1)));
+                            }
+                        }
+                    }
+                }
+                catch (Exception e) { record["fatal"] = e.GetType().Name + ": " + e.Message; }
+                record["results"] = results;
+                try { if (state != null) EcoreMainloop.Post(() => state.Text = "Benchmark finished. Download it from your browser."); } catch { }
+                return TizenAmbilight.Json.ToJson(record);
+            }
+            finally { running = false; }
+        }
+
         string RunCaptureTest()
         {
             if (running) return captureReport ?? "{\"error\":\"a capture test is already running\"}";
@@ -182,7 +263,7 @@ namespace TizenHaloCaptureProbe
             {
                 var record = new Dictionary<string, object>
                 {
-                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.4.0"},
+                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.5.0"},
                     {"platform_version", Feature("http://tizen.org/feature/platform.version")},
                     {"model_name", Feature("http://tizen.org/feature/model_name")},
                     {"firmware", "Enter firmware version when sharing this report"},

@@ -11,6 +11,7 @@
     <Compile Remove="host-tests/**/*.cs" />
     <Compile Include="../../app/src/Json.cs" Link="Json.cs" />
     <Compile Include="../../app/src/PngDecoder.cs" Link="PngDecoder.cs" />
+    <Compile Include="../../app/src/JpegDecoder.cs" Link="JpegDecoder.cs" />
     <TizenTpkFiles Include="../../app/res/TizenHalo.png">
       <TizenTpkSubDir>shared/res/</TizenTpkSubDir>
       <TizenTpkFileName>TizenHalo.png</TizenTpkFileName>

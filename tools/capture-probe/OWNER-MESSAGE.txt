@@ -1,21 +1,18 @@
-Hi again! Good news first: the earlier test proved your TV does return captured frames. The reason it
-looked black was just that nothing coloured was on the video plane. This version fixes that in a way
-that needs nothing from you.
+Hi! TizenHalo is working on your TV, but the current capture method is slow (~2 fps). This version
+finds the fastest one. It's a one-button FPS benchmark: it times every capture method and resolution
+and writes a single file for you to send back. It does NOT drive the LEDs and nothing runs until you
+press the button.
 
-What's new: the app now PAINTS full-screen red, green and blue on the TV itself and tries to capture each
-one in several ways (including a real PNG screenshot). No photo to load, nothing to keep in the
-background - it does everything on its own.
-It still does NOT drive the LEDs or change any TV setting, and nothing runs until you press a button.
-
-1. Install TizenHalo-Capture-Probe-0.4.0-tizen50.tpk with Apps2Samsung (same per-TV signing/install
-   as before; you can replace the old one).
+1. Install TizenHalo-Capture-Probe-0.5.0-tizen50.tpk with Apps2Samsung (same per-TV signing/install
+   as before; you can replace the old probe).
 2. Open "TizenHalo Capture Probe" and leave its screen open.
 3. From your phone/computer on the same network, open:
    http://YOUR-TV-IP:8795/
-4. Press "Run capture test". The TV will briefly flash red, green and blue - that's the test painting
-   the colours it captures. A report file downloads on its own.
-5. Send that JSON back, and tell me your exact model and firmware version.
+4. Press "Run FPS benchmark". It runs for a few seconds (the screen may flicker). A file
+   tizenhalo-fps-benchmark.json downloads on its own.
+5. Send that JSON back, with your exact model and firmware version.
 6. Back on the TV closes the app.
 
-That's it. If anything fails, send the error or describe what you saw - a failure is still useful.
-Thanks a lot!
+It measures the speed of the in-memory capture methods (secvideo) and the screenshot method (PNG and
+JPEG, at two sizes). From the numbers I'll pick the fastest one that actually captures the picture, and
+build a faster version of the app for you to try. If anything fails, send the error too.

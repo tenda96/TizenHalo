@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 root = Path(__file__).resolve().parent
-path = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'bin/Release/tizen50/io.github.tenda96.TizenHalo.CaptureProbe-0.4.0.tpk'
+path = Path(sys.argv[1]) if len(sys.argv) > 1 else root / 'bin/Release/tizen50/io.github.tenda96.TizenHalo.CaptureProbe-0.5.0.tpk'
 ns = {'t': 'http://tizen.org/ns/packages'}
 ds = '{http://www.w3.org/2000/09/xmldsig#}'
 with zipfile.ZipFile(path) as z:

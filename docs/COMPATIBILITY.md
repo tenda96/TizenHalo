@@ -18,7 +18,7 @@ integration is experimental on all other models.
 |---|---|---|
 | QE55Q74T, T-NKMDEUC-2743.0, Tizen 5.5 | Firmware ABI analysis and on-device capture tests | Existing supported reference device |
 | Other Tizen 5.5 TVs | No device-specific report yet | Unverified; do not assume the Q74T's firmware ABI |
-| UN43RU7100FXZC, T-MSLAKUC-1500.5, Tizen 5.0 | Official firmware downloaded and identified; encrypted header audited | Research only; separate diagnostic package ready, capture ABI not recovered |
+| UN43RU7100FXZC, T-MSLAKUC-1500.5, Tizen 5.0 | Owner diagnostic runs; three exact ARM32 libraries received, legacy capture path inspected | Native contract research; capture has not been invoked, no full-app profile yet |
 | S84F, Tizen 9 | TizenAmbilight upstream reports working video-plane and RGB sampling | Separate experimental adapter/profile builds; no TizenHalo owner test yet |
 | Tizen 6.5+ with RGB sampling exports | HyperTizen/TizenGlow publish sampling implementations | RGB-family discovery integrated; runtime/device validation pending, no blanket support claim |
 | Earlier Tizen releases | Runtime and capture interfaces not assessed | Long-term research; may require a different host/package |
@@ -45,7 +45,7 @@ The exact firmware is linked by the model's
   **NikeM** on the existing Q74T firmware, including valid padding.
 - A follow-up audit across 24 repositories/forks expanded the distinct public
   candidates to **21**, with no successful MuseL header decryption. The owner
-  diagnostic is still pending; this portability work does not unblock decryption.
+  diagnostic was subsequently received on 2026-10-27; decryption remains unresolved.
 - Therefore the RU7100 root filesystem and capture libraries have **not** been
   recovered from this encrypted download. No ABI, resolution or fps claim is
   made for that TV.
@@ -56,8 +56,13 @@ catalogue comes from commit `3310492cf19c56617acfe84f2f36f14aaab0df5b`.
 The audit does not print key material or extract/modify firmware partitions.
 Failure only excludes that candidate set; it does not prove no other key exists.
 
-The next practical input is a library report and, if readable, the capture libraries
-from the owner's running TV. The [separate compatibility probe](../tools/compatibility-probe/README.md)
+The owner has now supplied the report and readable legacy capture, AVOC and
+display-capture libraries. See [the 2026-10-27 native review](RU7100-OWNER-REPORT.md)
+for verified hashes, header offsets, the NV21 color-order caveat and the next
+bounded test. This removes the firmware-key dependency for the API research;
+it does not establish working capture or LEDs.
+
+The [separate compatibility probe](../tools/compatibility-probe/README.md)
 targets Tizen 5.0, inventories files without calling native capture, and allows
 the owner to download a fixed set of libraries for private analysis.
 It does not require root. Whether the retail sandbox permits those reads is a

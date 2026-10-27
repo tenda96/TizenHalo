@@ -134,3 +134,25 @@ Read `PORTABILITY-HANDOFF.md` and `BUILD-PROFILES.md` before changing package po
 - Saved `releases/PUBLICATION-v1.1.0-alpha.1.md` with the release, source commit,
   asset inventory, kit checksum, stable baseline and next owner-test tasks.
 - No on-device tests or support-status promotions were performed in publication.
+
+## 2026-10-27 — RU7100 owner diagnostic received and analyzed
+
+- Received the probe JSON and five library attachments; matched all sizes/hashes.
+  They contain three unique ARM32 binaries. Probe reports platform 5.0, 32-bit,
+  no native capture invoked. Exact SKU/firmware are conversation attribution;
+  report identity fields are unknown/placeholder.
+- Inspected legacy capture dispatch, wrapper assembly, crop/core, allocator and
+  pacing/cache helpers. Recovered caller sizes/pointers, dimensions/format/
+  protection/3D/timestamp/flip fields and copy-capacity checks. The path does not
+  write the modern pitch/interlace outputs. Protected capture returns -4.
+- Found explicit NV21 while format enum is still 0: existing NV12 assumptions
+  must not silently carry into this adapter. Current loader's dependency on the
+  inaccessible modern library also prevents a simple legacy-method selection.
+- Inspected AVOC HDR out-pointer/status boundary. Display capture was inventoried
+  only. Runtime permission, pixel order, geometry and all rates remain untested.
+- Preserved unique input binaries, report, full evidence and closed REA snapshots
+  outside the Git repository. Added a public-safe summary and updated catalogue/
+  handoff; proprietary binaries and full decompiled code were not committed.
+- Catalogue generator, eight Python tests and whitespace check pass. App code and
+  public alpha binaries/tag are unchanged. Next gate is a bounded direct-legacy
+  Tizen 5.0 capture probe with proper header/color tests, then an owner run.

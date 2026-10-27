@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "last_reviewed": "2026-10-26",
+  "last_reviewed": "2026-10-27",
   "scope": "Evidence catalogue, not a list of universally supported TVs. Current platform is reported installed OS, not inferred model year.",
   "sources": [
     {
@@ -129,20 +129,20 @@
       "model": "UN43RU7100FXZC",
       "current_tizen": "5.0",
       "firmware": "T-MSLAKUC-1500.5",
-      "capture_path": "Unknown; read-only diagnostic prepared",
-      "evidence": "research",
+      "capture_path": "Owner ARM32 legacy capture library; writable header contract under review",
+      "evidence": "owner_diagnostic",
       "result": "unknown",
       "tizenhalo": "research",
       "rate": "No capture measurement.",
-      "observed_scope": "Official firmware identified, encrypted header audit completed; owner has not tested the app.",
-      "limitations": "21 public key candidates failed; no recovered capture ABI. Main TizenHalo package still targets 5.5.",
+      "observed_scope": "Read-only probe ran on Tizen 5.0 / 32-bit and supplied three unique ARM32 libraries whose hashes match the attachments. No native capture invoked. SKU/firmware attributed from conversation, not filled in report.",
+      "limitations": "Legacy main wrapper, caller-owned capacities/pointers and return fields inspected. NV21 branch means enum 0 is not proof of NV12. Modern capture/RGB names are missing or inaccessible. No capture/FPS/LED validation or main-app 5.0 profile yet. Firmware decryption remains unresolved but is no longer needed for this API review.",
       "source_ids": [
         "halo-reference"
       ],
       "evidence_urls": [
         "https://www.samsung.com/ca/support/model/UN43RU7100FXZC/"
       ],
-      "checked": "2026-10-26"
+      "checked": "2026-10-27"
     },
     {
       "id": "s84f",

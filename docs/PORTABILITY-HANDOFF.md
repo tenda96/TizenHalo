@@ -1,9 +1,32 @@
 # Portability handoff
 
-Checkpoint: 2026-10-26. Branch `research/ru7100-compatibility`.
+Checkpoint: 2026-10-27. Branch `research/ru7100-compatibility`.
 Original online baseline: `8e4f9107bf05c444dedff5852cd806b5d633bab3`.
 RU7100 diagnostic commit: `da7ad2c`. Inspect `git log -3` for the current checkpoint
 commit; do not reset the branch to the online baseline.
+
+**Newest input: RU7100 owner files received.** Read `docs/RU7100-OWNER-REPORT.md`
+before continuing. The read-only probe runs on reported Tizen 5.0 / 32-bit; three
+unique ARM32 libraries match the report hashes. Model/firmware attribution is
+from the conversation, not independently populated report fields. Legacy capture
+wrapper/core and caller-owned header were inspected. The modern capture/RGB
+names were not readable in the probed paths. No capture was invoked, no 5.0
+main-app profile has been built, and no public alpha artifact was replaced.
+
+The key new pitfall is color order: this library explicitly handles **NV21** yet
+reports the same enum 0 as planar 420. Do not route it into the existing NV12 zone
+extractor without proving/handling VU/UV order. Header +24/+28/+2c are not modern
+pitch/interlace outputs in this copy path. The current loader also requires the
+modern library before choosing a legacy symbol; that must be separated for RU7100.
+Next: explicit direct-legacy Tizen 5.0 profile/probe, synthetic contract/color tests,
+then a few serialized owner capture calls. Firmware decryption is no longer the
+blocker for this API work, although the encrypted firmware itself remains unresolved.
+
+Private inputs, full decompiler evidence and REA snapshots are outside Git in
+`../tizen-ru7100-research/owner-report-2026-10-27/`. Both opened REA targets were
+closed with snapshots saved. The capture core is `0x13798`, main wrapper `0x158f8`,
+crop body `0x157c8`; avoid the ambiguous crop PLT symbol name. No proprietary
+binaries/decompiled functions should be committed or attached to public issues.
 
 **Publication completed:** the owner authorized upload, and
 [v1.1.0-alpha.1](https://github.com/tenda96/TizenHalo/releases/tag/v1.1.0-alpha.1)
@@ -40,8 +63,9 @@ working methods, start a staged integration and preserve a reproducible handoff.
 No universal Tizen-version support is claimed. No TV installation or new live
 capture test was performed in this stage. The user handles Apps2Samsung sideload.
 
-RU7100 owner has been contacted and has not yet tried the app. Its installed
-firmware is T-MSLAKUC-1500.5 / Tizen 5.0. Expanded public-key audit (21 candidates
+RU7100 owner supplied a successful read-only diagnostic and libraries on 2026-10-27,
+but has not supplied a capture test. Reported firmware attribution is
+T-MSLAKUC-1500.5 / Tizen 5.0. Expanded public-key audit (21 candidates
 from 24 repositories/forks) failed to decrypt the header; Q74T positive control
 succeeded. Do not repeat the completed audit without genuinely new candidates.
 The read-only diagnostic package and owner instructions are already in
@@ -133,7 +157,8 @@ sampler. This is a test-environment error, not evidence of a device capture fail
 
 ## Next concrete actions
 
-1. Obtain an owner diagnostic for a known RGB-positive TV and match actual exports,
+1. Continue RU7100 from its newly received native files and the detailed review.
+   Also obtain an owner diagnostic for a known RGB-positive TV and match actual exports,
    process architecture and native permissions. Build an explicitly forced RGB
    test profile; record condition, fresh source colors and complete-set refresh.
 2. Test the built S84F-9 profile with an owner: exact firmware, launch/service,

@@ -1,0 +1,124 @@
+# RU7100 owner diagnostic and native contract review
+
+Received and inspected: 2026-10-27. This is diagnostic/static evidence, **not a
+successful capture test**. No new TV capture was invoked in this investigation.
+The owner's report explicitly records `native_capture_invoked: false`.
+
+## Attribution and verified inputs
+
+The conversation identifies the TV as UN43RU7100FXZC / T-MSLAKUC-1500.5. The JSON
+itself reports model `unknown` and a firmware placeholder, so the exact SKU/firmware
+remain owner attribution, not independently verified report fields.
+
+The probe successfully ran and read files on **Tizen 5.0**, in a **32-bit process**.
+All attached ELF files are ARM32/EABI5; their byte counts and SHA-256 hashes match
+the probe report exactly. Five supplied library files contain three distinct binaries:
+
+| Binary | Bytes | SHA-256 |
+|---|---:|---|
+| `libsec-video-capture.so.0.1.0` | 34416 | `aaa972ffff9a5e96236abbd3c48ce3420e09f69621811ac49b1d840c80dde2fd` |
+| `libavoc.so` | 722936 | `a6413cb76017890e880e4929206a59fadea4c6f19836a83b481ed51e1f8d245d` |
+| `libdisplay-capture-api.so.0.0` | 18024 | `c01a0254f3a11ad96aac28c40db262971010cb99dab059e6128d41d7550de188` |
+
+The supplied `.so.0` capture/display files are byte-identical to their versioned
+counterparts. That establishes equal content, not the original filesystem link type.
+The capture Build ID is `f661ba018308aae0e3ca03c2678311ea8992e56b`.
+It differs from the previously inspected Q74T legacy library hash.
+
+The modern `libvideo-capture` and two probed `libvideoenhance` names are
+`missing_or_inaccessible`. Do not turn that into a claim of physical absence.
+The report did not call `dlopen`, `dlsym`, capture or HDR functions; readability
+and exported symbols do not establish runtime permission or working pixels.
+
+## Recovered legacy capture path
+
+Ghidra 12.1.4 inspection of this exact owner binary finds:
+
+- `secvideo_api_capture_video_main` at analysis address `0x11168` forwards three
+  arguments through dispatch-table slot `+0x0c`.
+- Dispatcher initializer `0x15ca4` returns table `0x28094`; slot `+0x0c` contains
+  `api_capture_video_main` (`0x158f8`). These are analysis addresses, not live pointers.
+- The wrapper assembly preserves r0/r1/r2 and supplies four zero crop arguments
+  before calling the crop implementation at `0x157c8` via its PLT stub.
+- Crop implementation calls the core at `0x13798` with input/video-main selection
+  `(1, 5, requestedWidth, requestedHeight, 0, 1, callerHeader, ...)`.
+- The core opens `sec_dri_card1` through the native library, uses synchronization
+  ioctl `0xc00c6460`, capture ioctl `0xc0686452`, and copies into caller-provided
+  Y/chroma pointers after checking advertised capacities. An app adapter should
+  call this existing native entry point, not reproduce direct driver access.
+- Protected capture takes an explicit `-4` return path. No protected-content
+  fallback is established on this model.
+
+Header fields observed in this core (byte offsets):
+
+| Offset | Meaning / observation |
+|---|---|
+| `+0x00`, `+0x04` | Caller Y/chroma capacities, checked before copy |
+| `+0x08`, `+0x0c` | Returned width/height written on successful copy |
+| `+0x10`, `+0x14` | Caller-owned Y/chroma pointers, used as copy destinations |
+| `+0x18` | Returned format enum: 0=420, 1=422, 2=444, 3=unknown |
+| `+0x1c` | Returned protection flag |
+| `+0x20` | Returned 3D mode |
+| `+0x30`, `+0x34` | Timestamp words |
+| `+0x3c` | Flip indication |
+
+This copy path does **not** write the Q74T-modern interlace/pitch fields at
+`+0x24/+0x28/+0x2c`. It packs output rows itself when driver pitch differs from
+image width. Keep a separate legacy readback policy; do not shift S84F fields here.
+
+### Important color distinction
+
+The core has an explicit FourCC `0x3132564e` **NV21** branch while reporting enum
+0 for both this branch and planar YUV420. Therefore enum 0 does not prove NV12
+UV order. The current application's zone extractor assumes NV12. A RU7100 test
+adapter must establish the actual VU/UV order and converted-planar output, add
+synthetic color fixtures, and verify primary colors on the TV before claiming
+correct colors. Do not silently reuse the current NV12 conversion.
+
+## Pacing, HDR and remaining limits
+
+`0x15fdc` computes `previousTimestamp + 40000 - now` from shared memory and checks
+whether calls are less than 30001 microseconds apart. The core may sleep for the
+computed delay before its ioctl; `0x16108` stores pid, success, timestamp and a
+104-byte ioctl descriptor. This is evidence of shared pacing/caching, not an
+observed frame rate or proof of the Q74T's 150-responses/~10-second behavior.
+
+`avoc_get_hdr_type` writes one 32-bit result through its pointer argument and calls
+the AVOC DBus proxy. Assembly shows a status return, including `-7` on DBus-init
+failure. This is a plausible match for `out int` plus status, but no runtime call
+or SDR/HDR numeric mapping was validated. Keep the manual SDR option available.
+
+The display-capture file exports the expected sync/file/periodic entry points.
+It was inventoried, not decompiled in this pass; its request ABI, runtime service
+permissions, returned format and video coverage still need review.
+
+## Next concrete implementation/test gate
+
+1. Confirm the owner's exact current SKU/firmware alongside this report hash.
+2. Add an explicit **Tizen 5.0** experimental profile using the legacy library
+   directly (`libsec-video-capture.so.0` / `.so.0.1.0`). The current loader requires
+   the missing modern library before legacy method selection, so selecting
+   `legacy_main` alone is insufficient.
+3. Factor library/entry/legacy-copy policy by profile. Do not broaden the Q74T
+   ABI or guess from the Tizen version. Preserve the public alpha tag/assets.
+4. Implement header/bounds fixtures for this binary and explicit chroma-order
+   handling. Allow only 420 initially; reject 422/444/interlace/oversized readback
+   instead of treating it as existing NV12 data. Advertised capacities must
+   account for the native pre-copy pitch checks, not only packed output bytes.
+5. Start with a bounded opt-in capture probe (for example a few serialized calls
+   requesting 640×360). That is a proposed first test, **not a proven supported
+   resolution**. Record `dlopen`/symbol status, rc, dimensions, format, protection,
+   pointer ownership, duration and a small pixel sample. No concurrent native calls.
+6. Only after that succeeds, build the LED-output profile and test identified SDR
+   video, RGB primaries, mapping, restart and sustained rate. Capture and output Hz
+   remain separate. No 15/25/30-FPS claim is currently possible for this TV.
+
+## Private evidence and checkpoint
+
+Original binaries/report and full decompiler Evidence are kept outside this Git
+repository under `../tizen-ru7100-research/owner-report-2026-10-27/`. That folder
+contains an input manifest, unique binaries, capture dispatch/core/allocator/pacing
+analysis, wrapper assembly, HDR dossier and REA snapshots. Do not add those
+proprietary binaries or full decompiled functions to the public repository.
+The firmware remains encrypted, but access to these owner libraries removes
+firmware decryption as the blocker for this native-API investigation.

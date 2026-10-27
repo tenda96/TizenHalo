@@ -42,7 +42,7 @@ def validate(data):
         seen.add(did)
         require(device["tizenhalo"] in HALO, "Unknown TizenHalo status: " + did)
         require(device["result"] in {"working", "partial", "blocked", "unknown"}, "Unknown result: " + did)
-        require(device["evidence"] in {"local_device", "upstream_author", "upstream_user", "research"}, "Unknown evidence: " + did)
+        require(device["evidence"] in {"local_device", "owner_diagnostic", "upstream_author", "upstream_user", "research"}, "Unknown evidence: " + did)
         require(bool(device["source_ids"]), "No sources: " + did)
         for sid in device["source_ids"]:
             require(sid in sources, "Unknown source reference: " + sid)

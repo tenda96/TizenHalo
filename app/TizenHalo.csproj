@@ -8,8 +8,9 @@
     <!-- SDK incremental resource copies otherwise retain the preceding profile's
          metadata when two packages share the tizen55 output directory. -->
     <TizenPackageDirName>tpkroot-$(HaloProfile)</TizenPackageDirName>
-    <TargetFramework Condition="'$(HaloProfile)'!='s84f-90'">tizen55</TargetFramework>
+    <TargetFramework Condition="'$(HaloProfile)'!='s84f-90' And '$(HaloProfile)'!='ru7100-50'">tizen55</TargetFramework>
     <TargetFramework Condition="'$(HaloProfile)'=='s84f-90'">tizen90</TargetFramework>
+    <TargetFramework Condition="'$(HaloProfile)'=='ru7100-50'">tizen50</TargetFramework>
     <TizenManifestFile Condition="'$(HaloGeneratedManifest)'!=''">$(HaloGeneratedManifest)</TizenManifestFile>
     <RootNamespace>TizenAmbilight</RootNamespace>
     <AssemblyName>TizenHalo</AssemblyName>
@@ -69,7 +70,7 @@
   </ItemGroup>
 
   <Target Name="ValidateHaloProfile" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(HaloProfile)'!='q74t-55' And '$(HaloProfile)'!='rgb-55' And '$(HaloProfile)'!='s84f-90'"
+    <Error Condition="'$(HaloProfile)'!='q74t-55' And '$(HaloProfile)'!='rgb-55' And '$(HaloProfile)'!='s84f-90' And '$(HaloProfile)'!='ru7100-50'"
            Text="Unknown HaloProfile. Use python3 tools/build-profile.py for supported profiles." />
     <Error Condition="'$(HaloProfile)'=='s84f-90' And '$(HaloGeneratedManifest)'==''"
            Text="S84F requires a matching Tizen 9 manifest. Use python3 tools/build-profile.py s84f-90." />

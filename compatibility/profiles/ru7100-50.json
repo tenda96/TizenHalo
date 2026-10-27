@@ -1,0 +1,10 @@
+{
+  "id": "ru7100-50",
+  "target_framework": "tizen50",
+  "api_version": "5.0",
+  "capture_backend": "file",
+  "video_abi": "none",
+  "default_method": "main",
+  "default_capture_fps": 10,
+  "experimental": true
+}

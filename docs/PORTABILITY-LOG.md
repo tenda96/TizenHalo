@@ -1,5 +1,25 @@
 # Portability work log
 
+## 2026-10-27 — RU7100 capture CONFIRMED; real app profile built
+
+- A good v0.4 run on the TV proved capture WORKS: the PNG screenshot (dc_request_capture_to_file_sync)
+  decoded red/green/blue exactly as painted (e.g. red -> RGB 255,58,13), and secvideo_api_capture_screen
+  also captured them. The earlier all-black runs were a display/timing race (the paint had not been
+  presented when the capture ran), exactly as the owner diagnosed. Chroma order resolved as NV12 from
+  the secvideo samples (red U88/V244, blue U242/V109). The "secvideo cannot see graphics" conclusion was
+  the same timing artifact and is withdrawn.
+- Added a real application profile `ru7100-50` (tizen50 / API 5.0) using the existing file/screenshot
+  backend (CaptureApi + PngDecoder). Wired it through CaptureProfile (valid combo, ResolveBackend forces
+  "file", AllowsMethod/Describe), build-profile.py, verify-package.py, the csproj target framework and
+  build.sh. Updated the profile host test to cover a no-ABI/file-backend profile.
+
+Verification completed (offline):
+
+- build.sh ru7100-50: catalogue + python tests + tizen50 package build + all four profile host tests
+  (incl ru7100-50) + interpolation + editor: PASS. Package verify PASS (api 5.0, profile metadata).
+- NOT verified: the full app on the TV. The build assumes the screenshot captures video the same as it
+  captured the painted colours. Not published; no new tag/PR.
+
 ## 2026-10-27 — RU7100 probe v0.4 (PNG screenshot path)
 
 - v0.3 ran on the TV: all three painted colours via secvideo_api_capture_screen came back all-zero, so

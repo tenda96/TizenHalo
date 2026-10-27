@@ -211,3 +211,16 @@ offsets match the Q74T family and the entry point is confirmed on this TV, but t
 assumed — a wrong field fails cleanly (the library validates app type / capture mode). Built and
 host-tested offline (RGBA grid-sampling fixtures added); not yet run on the TV. If the screenshot
 captures the painted colours, both the colour order and a usable capture method are settled at once.
+
+### Confirmed working + real app profile (2026-10-27)
+
+A good v0.4 run (one of several; others were black from a display-timing race the owner identified)
+proved capture works: the PNG screenshot decoded red/green/blue exactly as painted (red → RGB
+255,58,13), and `secvideo_api_capture_screen` captured them too. Chroma order is **NV12** (red U88/V244,
+blue U242/V109), matching TizenHalo's extractor. The earlier "secvideo can't see graphics" was the same
+timing artifact and is withdrawn.
+
+A real application profile `ru7100-50` (tizen50 / API 5.0) now exists, using the file/screenshot backend
+(`dc_request_capture_to_file_sync` → PNG → `PngDecoder`). It drives the LEDs via the normal TizenHalo
+service. Built and fully host-tested offline; it assumes the screenshot captures video as it captured the
+painted colours — to be confirmed on the TV. See `docs/RU7100-OWNER-SETUP.md` and `docs/BUILD-PROFILES.md`.

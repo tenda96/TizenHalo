@@ -33,10 +33,14 @@ static class CaptureProfileTests
                 bool rejected=false;try{LocalSettings.Save(new Dictionary<string,object>{{"captureMethod","legacy_main"}});}catch(ArgumentException){rejected=true;}
                 Check(rejected,"Foreign native method accepted through browser settings");
             }
-            if(profile.Id=="rgb-55") {
+            if(profile.VideoAbi=="none")
+                Check(VideoPlaneCapture.Init().Contains("No full-frame ABI"),"No-ABI package attempted native video initialization");
+            else
+                Check(VideoPlaneCapture.Init().Contains("32-bit"),"Host must reject native ARM32 capture");
+            if(profile.Id=="rgb-55")
                 Check(profile.ResolveBackend("video_plane")=="ppi"&&profile.ResolveBackend("file")=="ppi","User config escaped forced RGB");
-                Check(VideoPlaneCapture.Init().Contains("No full-frame ABI"),"RGB package attempted native video initialization");
-            }else Check(VideoPlaneCapture.Init().Contains("32-bit"),"Host must reject native ARM32 capture");
+            if(profile.Id=="ru7100-50")
+                Check(profile.ResolveBackend("video_plane")=="file"&&profile.ResolveBackend("ppi")=="file","User config escaped forced file backend");
             if(profile.Id=="s84f-90") {
                 Check(Convert.ToInt32(settings["captureWidth"])==960,"Old oversized request not migrated");
                 Check(!profile.AllowsMethod("screen_full")&&!VideoPlaneCapture.SetRequestSize(1280,720),"Q74T profile leaked into S84F");

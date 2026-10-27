@@ -24,7 +24,7 @@ root = Path(__file__).resolve().parent.parent
 version = ET.parse(root / "app/tizen-manifest.xml").getroot().attrib["version"]
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument("package",nargs="?")
-parser.add_argument("--profile",choices=("q74t-55","rgb-55","s84f-90"),default="q74t-55")
+parser.add_argument("--profile",choices=("q74t-55","rgb-55","s84f-90","ru7100-50"),default="q74t-55")
 args=parser.parse_args()
 package = Path(args.package) if args.package else root / f"dist/TizenHalo-{version}.tpk"
 spec=importlib.util.spec_from_file_location("build_profile",root/"tools/build-profile.py")

@@ -16,7 +16,7 @@ python3 tools/build-profile.py "${1:-q74t-55}"
 
 dotnet build tests/LayoutTests.csproj "${flags[@]}"
 dotnet tests/bin/Release/net8.0/LayoutTests.dll
-for profile in q74t-55 rgb-55 s84f-90; do
+for profile in q74t-55 rgb-55 s84f-90 ru7100-50; do
   dotnet tests/bin/Release/net8.0/LayoutTests.dll profile "compatibility/profiles/$profile.json"
 done
 dotnet tests/bin/Release/net8.0/LayoutTests.dll profile-invalid dist/.missing-capture-profile.json

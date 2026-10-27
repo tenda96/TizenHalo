@@ -33,6 +33,7 @@ namespace TizenAmbilight
             bool valid=id=="q74t-55" && framework=="tizen55" && api=="5.5" && backend=="video_plane" && abi=="q74t-55-native-v1" && method=="screen_video" && !experimental;
             valid|=id=="rgb-55" && framework=="tizen55" && api=="5.5" && backend=="ppi" && abi=="none" && method=="main" && experimental;
             valid|=id=="s84f-90" && framework=="tizen90" && api=="9.0" && backend=="video_plane" && abi=="s84f-90-native-v1" && method=="main" && experimental;
+            valid|=id=="ru7100-50" && framework=="tizen50" && api=="5.0" && backend=="file" && abi=="none" && method=="main" && experimental;
             if(!valid)throw new FormatException("Unsupported capture profile combination: "+id);
             return new CaptureProfile(id,framework,api,backend,abi,method,(int)fps,experimental);
         }
@@ -53,7 +54,7 @@ namespace TizenAmbilight
             }
         }
         public bool AllowsMethod(string method)
-        {if(Id=="q74t-55"){try{CaptureMethods.Find(method);return true;}catch(ArgumentException){return false;}}return (Id=="s84f-90"||Id=="rgb-55")&&method=="main";}
+        {if(Id=="q74t-55"){try{CaptureMethods.Find(method);return true;}catch(ArgumentException){return false;}}return (Id=="s84f-90"||Id=="rgb-55"||Id=="ru7100-50")&&method=="main";}
         public string ResolveMethod(string method) {return AllowsMethod(method)?method:DefaultMethod;}
         public void NormalizeSaved(Dictionary<string,object> saved)
         {
@@ -73,13 +74,14 @@ namespace TizenAmbilight
         public string ResolveBackend(string requested)
         {
             if(Id=="rgb-55")return "ppi";
+            if(Id=="ru7100-50")return "file";
             if(Id=="q74t-55"&&(requested=="video_plane"||requested=="ppi"||requested=="file"))return requested;
             if(Id=="s84f-90"&&(requested=="video_plane"||requested=="ppi"))return requested;
             return Backend;
         }
         public Dictionary<string,object> Describe()
         {return new Dictionary<string,object>{{"id",Id},{"target_framework",Framework},{"api_version",ApiVersion},{"capture_backend",Backend},
-                {"label",Id=="q74t-55"?"Q74T reference · Tizen 5.5":Id=="rgb-55"?"RGB sampler · Tizen 5.5+ test":Id=="s84f-90"?"S84F · Tizen 9 test":"Invalid package profile"},
+                {"label",Id=="q74t-55"?"Q74T reference · Tizen 5.5":Id=="rgb-55"?"RGB sampler · Tizen 5.5+ test":Id=="s84f-90"?"S84F · Tizen 9 test":Id=="ru7100-50"?"RU7100 · Tizen 5.0 test (screenshot)":"Invalid package profile"},
                 {"video_abi",VideoAbi},{"experimental",Experimental},{"error",Error??""},
                 {"max_capture_width",VideoAbi==VideoPlaneAbi.S84F.Id?960:1280},
                 {"max_capture_height",VideoAbi==VideoPlaneAbi.S84F.Id?540:720}};}

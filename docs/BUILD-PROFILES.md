@@ -31,6 +31,7 @@ promise that every newer Samsung runtime loads and runs it unchanged.
 | `q74t-55` | `tizen55` / API 5.5 | Q74T caller-owned ARM32; RGB/file may be explicitly selected | Existing seven Q74T methods | Reference firmware; this refactor still needs a device regression run |
 | `rgb-55` | `tizen55` / API 5.5 | RGB triplets only; no full-frame ABI | None | Experimental owner-test profile |
 | `s84f-90` | `tizen90` / API 9.0 | Separate S84F caller-owned ARM32 header, up to 960×540 | `main` only | Experimental; compiled and checked offline, no TizenHalo device test |
+| `ru7100-50` | `tizen50` / API 5.0 | PNG screenshot (`file` backend, `dc_request_capture_to_file_sync`); no full-frame ABI | none (file backend) | Experimental; capture confirmed on one RU7100 via probe, full app not device-tested |
 
 All share package/application/service IDs. Install **one at a time**; do not expect
 side-by-side apps. Existing saved WLED, color and layout settings are retained by
@@ -39,9 +40,10 @@ and an old oversized S84F request resets to 960×540. A clean uninstallation may
 remove data depending on the installation tool/TV; application migration cannot
 guarantee persistence through a tool that deletes that data.
 
-The RU7100/Tizen 5.0 artifact remains the separate **read-only compatibility
-probe**. No full application profile exists for its unrecovered capture ABI.
-Q80A/Tizen 6 remains research, not a generated full-frame profile.
+The `ru7100-50` profile uses the **file/screenshot backend** (`dc_request_capture_to_file_sync` →
+PNG → decode), which the owner's capture probe confirmed returns the real on-screen composition on an
+RU7100. The full app is not yet device-tested there; the read-only compatibility probe and the
+capture probe remain for diagnosis. Q80A/Tizen 6 remains research, not a generated full-frame profile.
 
 ## Build
 
@@ -49,6 +51,7 @@ Q80A/Tizen 6 remains research, not a generated full-frame profile.
 bash build.sh                  # Q74T reference + host tests
 bash build.sh rgb-55           # RGB test package + host tests
 bash build.sh s84f-90          # S84F test package + host tests
+bash build.sh ru7100-50        # RU7100 Tizen 5.0 screenshot package + host tests
 bash build.sh all              # all three serially + shared host tests
 ```
 
@@ -69,6 +72,7 @@ Artifacts:
 dist/TizenHalo-1.1.0-q74t-55.tpk
 dist/TizenHalo-1.1.0-rgb-55.tpk
 dist/TizenHalo-1.1.0-s84f-90.tpk
+dist/TizenHalo-1.1.0-ru7100-50.tpk
 ```
 
 The Q74T artifact is also copied to the existing `dist/TizenHalo-1.1.0.tpk` name.

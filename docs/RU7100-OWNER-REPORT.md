@@ -193,3 +193,21 @@ green and blue on its own window** and captures the screen composition for each,
 capture for comparison. Because the painted colour is known, the brightest-point sample settles the
 VU/UV order and shows whether `secvideo_api_capture_screen` even includes the graphics plane. One
 button, no photo, no background. Built and host-tested offline; not yet run on the TV.
+
+### v0.3 result and probe v0.4 (PNG screenshot path)
+
+v0.3 ran on the TV: all three painted colours captured through `secvideo_api_capture_screen` came back
+**all-zero** (y_max 0), confirming that secvideo screen capture does not include the graphics plane on
+this firmware; the video plane stayed dark with no video. So neither secvideo path sees on-screen
+colour.
+
+`dc_request_capture_to_file_sync` is confirmed **exported** in the owner's `libdisplay-capture-api.so.0.0`
+(alongside `dc_request_capture` and `dc_request_capture_sync`). It is the display-capture/screenshot
+API and normally captures the whole composition to a PNG, so it is the candidate that may see on-screen
+colour — and PNG gives RGB directly, removing the NV12/NV21 question. v0.4 adds `DisplayCapture.cs`: for
+each painted colour it writes a PNG via this API, decodes it with the existing PNG decoder and samples
+the RGB; it also keeps the secvideo and video-plane captures for comparison. The `_dc_capt_req_data`
+offsets match the Q74T family and the entry point is confirmed on this TV, but the struct ABI is
+assumed — a wrong field fails cleanly (the library validates app type / capture mode). Built and
+host-tested offline (RGBA grid-sampling fixtures added); not yet run on the TV. If the screenshot
+captures the painted colours, both the colour order and a usable capture method are settled at once.

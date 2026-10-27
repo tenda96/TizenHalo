@@ -7,9 +7,9 @@ legacy capture library.
 
 What it does, and does not do:
 
-- It **paints full-screen red, green and blue on its own window** and captures the screen composition
-  (`secvideo_api_capture_screen`) for each, then also captures the video plane
-  (`secvideo_api_capture_video_main`) once for comparison. Because it knows which colour it drew, the
+- It **paints full-screen red, green and blue on its own window** and, for each colour, tries a PNG
+  screenshot (`dc_request_capture_to_file_sync`, decoded to RGB) and the secvideo screen path, plus a
+  video-plane capture for comparison. Because it knows which colour it drew, the
   real chroma order and screen coverage can be settled with no photo or video needed, and without
   relying on the app staying alive in the background (Tizen pauses backgrounded UI apps).
 - It loads `libsec-video-capture.so.0.1.0` (or `.so.0` / `.so`) **directly**, independent of the modern
@@ -25,7 +25,7 @@ version is for.
 
 ## For the TV owner
 
-1. Sideload `TizenHalo-Capture-Probe-0.3.0-tizen50.tpk` with Apps2Samsung, using its normal per-TV
+1. Sideload `TizenHalo-Capture-Probe-0.4.0-tizen50.tpk` with Apps2Samsung, using its normal per-TV
    signing/install process. It coexists with other TizenHalo packages (different id and port).
 2. Open **TizenHalo Capture Probe** and leave its screen open.
 3. On a phone/computer on the same network, open `http://YOUR-TV-IP:8795/`.
@@ -56,6 +56,6 @@ bash tools/capture-probe/build.sh
 ```
 
 This runs the host tests, builds the `tizen50` package, verifies it and copies
-`dist/TizenHalo-Capture-Probe-0.3.0-tizen50.tpk`. The host tests cover the header offsets, the ignored
+`dist/TizenHalo-Capture-Probe-0.4.0-tizen50.tpk`. The host tests cover the header offsets, the ignored
 modern pitch region, caller-pointer ownership, buffer bounds, the NV12/NV21 chroma order and the grid
 sampling on synthetic data — no ARM code and no Samsung library are involved.

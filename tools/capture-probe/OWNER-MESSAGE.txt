@@ -2,11 +2,12 @@ Hi again! Good news first: the earlier test proved your TV does return captured 
 looked black was just that nothing coloured was on the video plane. This version fixes that in a way
 that needs nothing from you.
 
-What's new: the app now PAINTS full-screen red, green and blue on the TV itself and captures each one.
-So there's no photo to load and nothing to keep open in the background - it does everything on its own.
+What's new: the app now PAINTS full-screen red, green and blue on the TV itself and tries to capture each
+one in several ways (including a real PNG screenshot). No photo to load, nothing to keep in the
+background - it does everything on its own.
 It still does NOT drive the LEDs or change any TV setting, and nothing runs until you press a button.
 
-1. Install TizenHalo-Capture-Probe-0.3.0-tizen50.tpk with Apps2Samsung (same per-TV signing/install
+1. Install TizenHalo-Capture-Probe-0.4.0-tizen50.tpk with Apps2Samsung (same per-TV signing/install
    as before; you can replace the old one).
 2. Open "TizenHalo Capture Probe" and leave its screen open.
 3. From your phone/computer on the same network, open:

@@ -1,5 +1,22 @@
 # Portability work log
 
+## 2026-10-27 — RU7100 probe v0.4 (PNG screenshot path)
+
+- v0.3 ran on the TV: all three painted colours via secvideo_api_capture_screen came back all-zero, so
+  that path does not capture the graphics plane; the video plane stayed dark with no video. Neither
+  secvideo path sees on-screen colour on this firmware.
+- Confirmed dc_request_capture_to_file_sync is exported in the owner's libdisplay-capture-api.so.0.0
+  (parsed the dynamic symbol table). v0.4 adds DisplayCapture.cs: for each painted colour it writes a
+  PNG via that screenshot API, decodes it with the existing PngDecoder and samples RGB directly (no
+  NV12/NV21 question), keeping the secvideo and video-plane captures for comparison. _dc_capt_req_data
+  offsets match the Q74T family; entry point confirmed on this TV, struct ABI assumed (validated app
+  type/mode fails cleanly). Added RGBA grid sampling + host fixtures.
+
+Verification completed (offline):
+
+- Capture-probe v0.4 host tests: PASS (YUV and RGBA sampling). tizen50 package 0.4.0 compiles with zero
+  warnings/errors and passes signed-digest verification. NOT run on the TV. Not published; no tag/PR.
+
 ## 2026-10-27 — RU7100 capture probe v0.3 (self-drawn colours)
 
 - Reworked the probe after noticing v0.2 was unusable in practice: showing a colour needs the probe

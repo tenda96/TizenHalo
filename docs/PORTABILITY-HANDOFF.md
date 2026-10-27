@@ -1,6 +1,6 @@
 # Portability handoff
 
-Checkpoint: 2026-10-27 (capture probe v0.3; first live capture succeeded). Branch `research/ru7100-compatibility`.
+Checkpoint: 2026-10-27 (capture probe v0.4; secvideo cannot see graphics, trying PNG screenshot). Branch `research/ru7100-compatibility`.
 Original online baseline: `8e4f9107bf05c444dedff5852cd806b5d633bab3`.
 RU7100 diagnostic commit: `da7ad2c`. Inspect `git log -3` for the current checkpoint
 commit; do not reset the branch to the online baseline.

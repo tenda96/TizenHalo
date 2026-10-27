@@ -105,6 +105,20 @@ class Tests
         var empty = CaptureContract.SampleGrid(null, null, 0, 0);
         Check(empty.ContainsKey("error"), "No frame yields an error, not a throw");
 
-        Console.WriteLine("PASS: header offsets/round-trip, ignored modern pitch region, pointer ownership, buffer bounds, NV12/NV21 chroma order, grid sampling");
+        // 8. RGBA grid sampling (as from a decoded PNG screenshot): colour comes back directly.
+        int rw = 32, rh = 16; var rgba = new byte[rw * rh * 4];
+        for (int i = 0; i < rw * rh; i++) { rgba[i * 4 + 0] = 6; rgba[i * 4 + 1] = 8; rgba[i * 4 + 2] = 10; rgba[i * 4 + 3] = 255; }
+        for (int yy = 6; yy < 10; yy++) for (int xx = 20; xx < 28; xx++)   // bright red block
+        { int a = (yy * rw + xx) * 4; rgba[a] = 230; rgba[a + 1] = 20; rgba[a + 2] = 20; }
+        var rg = CaptureContract.SampleGridRgba(rgba, rw, rh);
+        Check((int)rg["luma_max"] > 60 && (int)rg["luma_min"] < 20, "RGBA luma spans dark field and bright block");
+        Check((double)rg["lit_fraction"] > 0.0 && (double)rg["lit_fraction"] < 1.0, "Only part of the RGBA frame is lit");
+        var rbright = (Dictionary<string, object>)rg["brightest"];
+        Check((int)rbright["r"] == 230 && (int)rbright["g"] == 20 && (int)rbright["b"] == 20, "Brightest RGBA point reports the red directly");
+        Check((int)rbright["x"] >= 20 && (int)rbright["x"] < 28, "Brightest RGBA point lands in the red block");
+        var rgEmpty = CaptureContract.SampleGridRgba(new byte[4], 100, 100);
+        Check(rgEmpty.ContainsKey("error"), "Undersized RGBA buffer yields an error, not a throw");
+
+        Console.WriteLine("PASS: header offsets/round-trip, ignored modern pitch region, pointer ownership, buffer bounds, NV12/NV21 chroma order, YUV and RGBA grid sampling");
     }
 }

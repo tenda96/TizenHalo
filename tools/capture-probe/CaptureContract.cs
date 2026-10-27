@@ -183,6 +183,48 @@ namespace TizenHaloCaptureProbe
             return s;
         }
 
+        /// <summary>Grid sample of an RGBA image (as decoded from a PNG screenshot). This gives the
+        /// colour directly — no chroma-order ambiguity — so a painted colour can be checked against
+        /// what came back. Reports luma min/max/mean, the lit fraction, the brightest point with its
+        /// RGB, and a few fixed probes.</summary>
+        public static Dictionary<string, object> SampleGridRgba(byte[] rgba, int width, int height)
+        {
+            var s = new Dictionary<string, object>();
+            if (rgba == null || width < 2 || height < 2 || (long)width * height * 4 > rgba.Length)
+            { s["error"] = "no RGBA frame to sample"; return s; }
+            const int Cols = 16, Rows = 9, LitThreshold = 32;
+            int yMin = 255, yMax = -1; long acc = 0; int count = 0, lit = 0, bx = 0, by = 0, best = -1;
+            for (int r = 0; r < Rows; r++)
+                for (int c = 0; c < Cols; c++)
+                {
+                    int px = (int)((c + 0.5) * width / Cols), py = (int)((r + 0.5) * height / Rows);
+                    int at = (py * width + px) * 4; if (at < 0 || at + 2 >= rgba.Length) continue;
+                    int luma = (54 * rgba[at] + 183 * rgba[at + 1] + 19 * rgba[at + 2]) >> 8;   // ~BT.601
+                    if (luma < yMin) yMin = luma; if (luma > yMax) yMax = luma; acc += luma; count++;
+                    if (luma > LitThreshold) lit++;
+                    if (luma > best) { best = luma; bx = px; by = py; }
+                }
+            s["luma_min"] = yMin; s["luma_max"] = yMax; s["luma_mean"] = count > 0 ? (int)(acc / count) : 0;
+            s["grid_points"] = count; s["lit_points"] = lit;
+            s["lit_fraction"] = count > 0 ? Math.Round((double)lit / count, 3) : 0.0;
+            int bAt = (by * width + bx) * 4;
+            s["brightest"] = new Dictionary<string, object>
+            {
+                {"x", bx}, {"y", by}, {"luma", best},
+                {"r", (int)rgba[bAt]}, {"g", (int)rgba[bAt + 1]}, {"b", (int)rgba[bAt + 2]},
+            };
+            var probes = new List<object>();
+            int[][] fixedPoints = { new[]{width/2,height/2}, new[]{width/4,height/4},
+                new[]{3*width/4,height/4}, new[]{width/4,3*height/4}, new[]{3*width/4,3*height/4} };
+            foreach (var p in fixedPoints)
+            {
+                int at = (p[1] * width + p[0]) * 4;
+                probes.Add(new Dictionary<string, object> { {"x", p[0]}, {"y", p[1]}, {"r", (int)rgba[at]}, {"g", (int)rgba[at + 1]}, {"b", (int)rgba[at + 2]} });
+            }
+            s["probes"] = probes;
+            return s;
+        }
+
         /// <summary>A small, reportable pixel sample at the frame centre: the Y value and both chroma
         /// bytes under each naming, so the owner's capture tells us the real VU/UV order offline.</summary>
         public static Dictionary<string, object> SamplePixel(byte[] y, byte[] chroma, int width, int height)

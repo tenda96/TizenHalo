@@ -10,6 +10,6 @@ dotnet tools/capture-probe/host-tests/bin/Release/net8.0/HostTests.dll
 dotnet build tools/capture-probe/TizenHaloCaptureProbe.csproj "${flags[@]}"
 python3 tools/capture-probe/verify-package.py
 mkdir -p dist
-cp tools/capture-probe/bin/Release/tizen50/io.github.tenda96.TizenHalo.CaptureProbe-0.3.0.tpk \
-   dist/TizenHalo-Capture-Probe-0.3.0-tizen50.tpk
-echo "built dist/TizenHalo-Capture-Probe-0.3.0-tizen50.tpk"
+cp tools/capture-probe/bin/Release/tizen50/io.github.tenda96.TizenHalo.CaptureProbe-0.4.0.tpk \
+   dist/TizenHalo-Capture-Probe-0.4.0-tizen50.tpk
+echo "built dist/TizenHalo-Capture-Probe-0.4.0-tizen50.tpk"

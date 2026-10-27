@@ -62,7 +62,7 @@ namespace TizenHaloCaptureProbe
             string platform = Feature("http://tizen.org/feature/platform.version");
             environment = TizenAmbilight.Json.ToJson(new Dictionary<string, object>
             {
-                {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.3.0"},
+                {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.4.0"},
                 {"platform_version", platform}, {"model_name", Feature("http://tizen.org/feature/model_name")},
                 {"process_bits", IntPtr.Size * 8},
                 {"firmware", "Enter firmware version when sharing this report"},
@@ -143,7 +143,7 @@ namespace TizenHaloCaptureProbe
             html.Append("<!doctype html><meta name=viewport content='width=device-width'><title>TizenHalo capture probe</title>");
             html.Append("<style>body{font:18px system-ui;max-width:820px;margin:40px auto;padding:20px;background:#09121b;color:#edf5fa}a{color:#52e2bb}button{font:600 18px system-ui;background:#52e2bb;color:#06251d;border:0;border-radius:10px;padding:14px 22px;cursor:pointer}</style>");
             html.Append("<h1>TizenHalo capture probe</h1>");
-            html.Append("<p>This test paints full-screen <b>red, green and blue</b> on the TV itself and captures each one, then also tries the video plane. You don't need to show a photo or leave the app in the background. The TV screen will flash those colours for a moment — that's expected. It does <b>not</b> drive the LEDs or change any TV setting.</p>");
+            html.Append("<p>This test paints full-screen <b>red, green and blue</b> on the TV itself and tries to capture each one, as a PNG screenshot and through the video path. You don't need to show a photo or leave the app in the background. The TV screen will flash those colours for a moment — that's expected. It does <b>not</b> drive the LEDs or change any TV setting.</p>");
             html.Append("<p><button onclick=\"go()\">Run capture test</button> <span id=s></span></p>");
             html.Append("<p><a href='/api/environment'>Download environment info</a></p>");
             html.Append("<pre id=o style='white-space:pre-wrap;background:#0f1b27;padding:14px;border-radius:10px'></pre>");
@@ -182,35 +182,44 @@ namespace TizenHaloCaptureProbe
             {
                 var record = new Dictionary<string, object>
                 {
-                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.3.0"},
+                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.4.0"},
                     {"platform_version", Feature("http://tizen.org/feature/platform.version")},
                     {"model_name", Feature("http://tizen.org/feature/model_name")},
                     {"firmware", "Enter firmware version when sharing this report"},
                     {"capture_invoked", true},
                 };
+                string dataDir;
+                try { dataDir = Application.Current.DirectoryInfo.Data; } catch { dataDir = "/tmp"; }
                 try
                 {
-                    using (var session = new LegacyCapture())
+                    using (var secvideo = new LegacyCapture())
+                    using (var display = new DisplayCapture())
                     {
-                        record["environment"] = session.Environment();
-                        if (!session.Ready) { record["error"] = "capture library not loaded: " + session.OpenError; }
-                        else
+                        record["secvideo_environment"] = secvideo.Environment();
+                        record["screenshot_library"] = display.LibraryLoaded;
+                        record["screenshot_error"] = display.OpenError;
+
+                        // Paint each colour, then try to capture it two ways: the PNG screenshot API
+                        // (whole-screen composition, RGB) and the secvideo screen path (video only).
+                        var painted = new List<object>();
+                        foreach (var col in Palette)
                         {
-                            var painted = new List<object>();
-                            foreach (var col in Palette)
-                            {
-                                PaintColour(col.r, col.g, col.b);
-                                var one = session.CaptureOnce(LegacyCapture.ScreenSymbol, RequestWidth, RequestHeight);
-                                painted.Add(new Dictionary<string, object>
-                                {
-                                    {"colour", col.name}, {"rgb", new[] { col.r, col.g, col.b }}, {"screen_capture", one},
-                                });
-                            }
-                            HidePaint();
-                            record["painted_screen_captures"] = painted;
-                            // One video-plane capture for comparison (expected dark with no video playing).
-                            record["video_plane_capture"] = session.CaptureOnce(LegacyCapture.VideoMainSymbol, RequestWidth, RequestHeight);
+                            PaintColour(col.r, col.g, col.b);
+                            var entry = new Dictionary<string, object> { {"colour", col.name}, {"rgb", new[] { col.r, col.g, col.b }} };
+                            entry["screenshot_png"] = display.Ready
+                                ? display.CaptureOnce(dataDir, "probe-" + col.name + ".png", RequestWidth, RequestHeight)
+                                : new Dictionary<string, object> { {"error", "screenshot library not ready: " + display.OpenError} };
+                            entry["secvideo_screen"] = secvideo.Ready
+                                ? secvideo.CaptureOnce(LegacyCapture.ScreenSymbol, RequestWidth, RequestHeight)
+                                : new Dictionary<string, object> { {"error", "secvideo library not ready: " + secvideo.OpenError} };
+                            painted.Add(entry);
                         }
+                        HidePaint();
+                        record["painted_captures"] = painted;
+                        // For comparison: one video-plane capture (dark with no video) and one screenshot
+                        // of whatever is on screen now that the colour overlay is hidden.
+                        if (secvideo.Ready) record["video_plane_capture"] = secvideo.CaptureOnce(LegacyCapture.VideoMainSymbol, RequestWidth, RequestHeight);
+                        if (display.Ready) record["screenshot_as_is"] = display.CaptureOnce(dataDir, "probe-asis.png", RequestWidth, RequestHeight);
                     }
                 }
                 catch (Exception e) { record["fatal"] = e.GetType().Name + ": " + e.Message; try { HidePaint(); } catch { } }

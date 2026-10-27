@@ -1,0 +1,25 @@
+Hi! This is the next step for your UN43RU7100FXZC / T-MSLAKUC-1500.5.
+
+The read-only diagnostic you ran told us which capture library your TV has. This new app actually
+tries to capture a few frames with it, so we can see whether a real picture comes back. It does NOT
+drive the LEDs, change any TV setting, or capture anything until you press a button.
+
+1. Install TizenHalo-Capture-Probe-0.1.0-tizen50.tpk with Apps2Samsung, using its normal per-TV
+   signing/install process. It can be installed alongside the other TizenHalo apps.
+2. Put a bright, colourful picture on the TV first - a still photo or a paused frame is ideal.
+   Avoid a black screen, a menu or a thumbnail.
+3. Open "TizenHalo Capture Probe" and leave its screen open.
+4. From your phone or computer on the same network, open:
+   http://YOUR-TV-IP:8795/
+5. Press "Run capture test". A report file downloads on its own. Send that JSON back, and tell us:
+   - your exact model and firmware version,
+   - what was on screen during the test (which app/source, roughly which colours).
+6. Back on the TV closes the app and stops its local server.
+
+It makes three capture calls at 640x360, one after another. If installation is refused, or the app
+closes before showing an address, send the exact error or describe what you saw. A failure is still
+a useful result - please send it too.
+
+One thing to know: this is the first time this capture path is tried on a TV like yours, so we do
+not yet know if it returns a usable picture, the right colours, or anything at all. That is exactly
+what this test is for. Only after a successful capture will we build an Ambilight version for your TV.

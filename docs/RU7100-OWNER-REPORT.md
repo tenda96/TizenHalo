@@ -122,3 +122,33 @@ analysis, wrapper assembly, HDR dossier and REA snapshots. Do not add those
 proprietary binaries or full decompiled functions to the public repository.
 The firmware remains encrypted, but access to these owner libraries removes
 firmware decryption as the blocker for this native-API investigation.
+
+## Capture probe prepared (2026-10-27) — offline only
+
+A separate experimental Tizen 5.0 capture probe is now implemented under
+`tools/capture-probe/`, distinct from the read-only inventory probe. It is **built and host-tested
+offline; it has not run on the TV**, and the owner has not returned a capture result.
+
+- `CaptureContract.cs`: the caller-owned 256-byte header contract recovered above (capacities
+  `+0/+4`, returned dimensions `+8/+0c`, pointers `+0x10/+0x14`, format `+0x18`, protection `+0x1c`,
+  3D `+0x20`, timestamp `+0x30`, flip `+0x3c`). It deliberately does **not** read the modern
+  `+0x24/+0x28/+0x2c` fields, which this copy path never writes. Operates on a managed `byte[]` so
+  the logic is host-testable.
+- `LegacyCapture.cs`: loads `libsec-video-capture.so.0.1.0`/`.so.0`/`.so` **directly** and calls
+  `secvideo_api_capture_video_main`, with no dependency on the modern library (the legacy entry point
+  initialises its own dispatch table). Caller-owned Y/chroma buffers are sized for UHD so the native
+  pre-copy capacity check passes instead of failing early; that check prevents any overflow.
+- The probe makes **three serialized calls** at 640×360 (a proposed first request, not a proven
+  resolution), only on an explicit owner action from its web page (port 8795). No LEDs, no settings,
+  no concurrency. It records library/symbol status, `rc`, returned dimensions, format enum,
+  protection, duration, caller-pointer ownership and a centre-pixel sample.
+- Colour order is left unresolved on purpose: the firmware reports enum `0` for both planar YUV420
+  and NV21, so the report gives both the NV12 and NV21 reading of the centre chroma bytes. The real
+  VU/UV order must be settled from a known captured colour before any conversion is written.
+- Host tests (`tools/capture-probe/host-tests`) cover header offsets and round-trip, the ignored
+  modern-pitch region, caller-pointer ownership, buffer bounds and the NV12/NV21 chroma order on
+  synthetic data. `bash tools/capture-probe/build.sh` runs them, builds and verifies the package.
+
+Owner instructions are in `tools/capture-probe/README.md` and `OWNER-MESSAGE.txt`. The package is not
+published: it is a local deliverable awaiting a real capture result on the TV. Only after a successful
+capture (usable picture, correct colours, stable rate) should an LED-output profile be built.

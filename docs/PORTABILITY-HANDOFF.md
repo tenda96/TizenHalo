@@ -1,9 +1,19 @@
 # Portability handoff
 
-Checkpoint: 2026-10-27. Branch `research/ru7100-compatibility`.
+Checkpoint: 2026-10-27 (capture probe). Branch `research/ru7100-compatibility`.
 Original online baseline: `8e4f9107bf05c444dedff5852cd806b5d633bab3`.
 RU7100 diagnostic commit: `da7ad2c`. Inspect `git log -3` for the current checkpoint
 commit; do not reset the branch to the online baseline.
+
+**Latest: experimental RU7100 CAPTURE probe prepared locally, offline only.**
+`tools/capture-probe/` loads the legacy library directly (no modern-library dependency) and makes
+three serialized `secvideo_api_capture_video_main` calls at 640×360 behind an explicit owner action,
+with no LED output. See `docs/RU7100-OWNER-REPORT.md` (section "Capture probe prepared") and
+`tools/capture-probe/README.md`. Built and host-tested offline; **not run on the TV, not published,
+no new tag/PR**. The three capture layers stay distinct: static analysis of the owner binary → offline
+host tests → the still-pending real capture on the TV. Next real step is an owner capture run; only a
+successful one justifies an LED-output profile. Do not route enum-0 output through the NV12 extractor
+until the owner's capture settles the VU/UV order.
 
 **Newest input: RU7100 owner files received.** Read `docs/RU7100-OWNER-REPORT.md`
 before continuing. The read-only probe runs on reported Tizen 5.0 / 32-bit; three

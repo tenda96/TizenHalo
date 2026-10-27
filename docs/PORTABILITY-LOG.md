@@ -1,5 +1,28 @@
 # Portability work log
 
+## 2026-10-27 — RU7100 capture probe (offline)
+
+- Reviewed the owner's legacy capture core from the private REA evidence and confirmed the
+  caller-owned header contract (capacities checked before copy, returned dims +8/+0c, pointers
+  +0x10/+0x14, format +0x18, protection +0x1c, 3D +0x20, timestamp +0x30, flip +0x3c). Confirmed the
+  copy path packs rows itself and never writes the modern +0x24/+0x28/+0x2c fields, that enum 0 is
+  shared by planar YUV420 and NV21, and that protected content returns -4. Static analysis only.
+- Added `tools/capture-probe/`: a separate Tizen 5.0 app that loads `libsec-video-capture.so.0.1.0`
+  (or .so.0/.so) directly without the modern library and makes three serialized
+  `secvideo_api_capture_video_main` calls at 640×360, only on an explicit owner action, with no LED
+  output and no settings change. Records library/symbol, rc, dimensions, format, protection, duration,
+  caller-pointer ownership and a centre-pixel sample; reports both NV12 and NV21 chroma readings.
+- Added host tests for the header offsets/round-trip, the ignored modern-pitch region, caller-pointer
+  ownership, buffer bounds and NV12/NV21 order. Updated the owner report and this handoff.
+
+Verification completed (offline):
+
+- Capture-probe host tests: PASS.
+- `tizen50` capture-probe package compiles with zero warnings/errors and passes the signed-digest
+  package verification (`bash tools/capture-probe/build.sh`).
+- NOT verified: any behaviour on the TV. No capture has run on hardware; colours, dimensions,
+  protection behaviour and stability remain unproven. Package not published; no new tag or PR.
+
 ## 2026-10-26 — evidence baseline and RGB discovery
 
 - Checked upstream default branches and relevant issues/PR discussions; pinned

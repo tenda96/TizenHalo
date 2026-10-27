@@ -1,0 +1,22 @@
+<Project Sdk="Tizen.NET.Sdk/1.1.9">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>tizen50</TargetFramework>
+    <AssemblyName>TizenHaloCaptureProbe</AssemblyName>
+    <RootNamespace>TizenHaloCaptureProbe</RootNamespace>
+    <NoWarn>$(NoWarn);CS0649</NoWarn>
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="host-tests/**/*.cs" />
+    <Compile Include="../../app/src/Json.cs" Link="Json.cs" />
+    <TizenTpkFiles Include="../../app/res/TizenHalo.png">
+      <TizenTpkSubDir>shared/res/</TizenTpkSubDir>
+      <TizenTpkFileName>TizenHalo.png</TizenTpkFileName>
+    </TizenTpkFiles>
+    <TizenTpkFiles Include="../../LICENSE">
+      <TizenTpkSubDir>res/</TizenTpkSubDir>
+      <TizenTpkFileName>LICENSE.txt</TizenTpkFileName>
+    </TizenTpkFiles>
+  </ItemGroup>
+</Project>

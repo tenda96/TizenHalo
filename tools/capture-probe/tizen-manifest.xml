@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="io.github.tenda96.TizenHalo.CaptureProbe" version="0.1.0" api-version="5.0" xmlns="http://tizen.org/ns/packages">
+  <author>tenda96</author>
+  <profile name="tv" />
+  <ui-application appid="io.github.tenda96.TizenHalo.CaptureProbe" exec="TizenHaloCaptureProbe.dll" multiple="false" nodisplay="false" taskmanage="true" api-version="5.0" type="dotnet">
+    <label>TizenHalo Capture Probe</label>
+    <icon>TizenHalo.png</icon>
+  </ui-application>
+  <privileges>
+    <privilege>http://tizen.org/privilege/internet</privilege>
+    <privilege>http://tizen.org/privilege/network.get</privilege>
+  </privileges>
+</manifest>

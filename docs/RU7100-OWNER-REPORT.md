@@ -183,3 +183,13 @@ To settle colour without depending on a video being played, v0.2:
 Built and host-tested offline (grid-sampling fixtures added). Not yet run on the TV. The owner is asked
 to show a bright solid red or blue picture and re-run. Only once a captured frame carries a real,
 known colour can the VU/UV order be fixed and an LED-output profile considered.
+
+### Capture probe v0.3 — self-drawn colours
+
+A usability flaw in v0.2: to show a colour the owner would have to leave the probe foreground (Tizen
+then pauses the app, so the server stops), and whole-screen capture would otherwise grab the probe's
+own dark window. v0.3 removes the dependency on external content: the probe **paints full-screen red,
+green and blue on its own window** and captures the screen composition for each, plus one video-plane
+capture for comparison. Because the painted colour is known, the brightest-point sample settles the
+VU/UV order and shows whether `secvideo_api_capture_screen` even includes the graphics plane. One
+button, no photo, no background. Built and host-tested offline; not yet run on the TV.

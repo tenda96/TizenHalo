@@ -1,6 +1,6 @@
 # Portability handoff
 
-Checkpoint: 2026-10-27 (capture probe v0.2; first live capture succeeded). Branch `research/ru7100-compatibility`.
+Checkpoint: 2026-10-27 (capture probe v0.3; first live capture succeeded). Branch `research/ru7100-compatibility`.
 Original online baseline: `8e4f9107bf05c444dedff5852cd806b5d633bab3`.
 RU7100 diagnostic commit: `da7ad2c`. Inspect `git log -3` for the current checkpoint
 commit; do not reset the branch to the online baseline.
@@ -12,8 +12,10 @@ with no LED output. See `docs/RU7100-OWNER-REPORT.md` (section "Capture probe pr
 `tools/capture-probe/README.md`. v0.1 was run on the TV: capture SUCCEEDED (rc=0, legacy library loaded directly, not protected,
 caller pointers kept, header contract confirmed on hardware), but the frame was dark because the owner
 sat in the app with no video playing, so the video plane was black and colour order is still unresolved.
-v0.2 (built, host-tested, NOT yet run on the TV) adds whole-screen capture and grid sampling so a
-solid-colour still settles the colours. Not published, no new tag/PR. The three capture layers stay distinct: static analysis of the owner binary → offline
+v0.3 (built, host-tested, NOT yet run on the TV) has the probe PAINT full-screen red/green/blue on its
+own window and capture each, plus one video-plane capture, so the owner needs no photo and no
+background (Tizen pauses backgrounded UI apps). The known painted colour settles the VU/UV order and
+whether screen capture includes graphics. Not published, no new tag/PR. The three capture layers stay distinct: static analysis of the owner binary → offline
 host tests → the still-pending real capture on the TV. Next real step is an owner capture run; only a
 successful one justifies an LED-output profile. Do not route enum-0 output through the NV12 extractor
 until the owner's capture settles the VU/UV order.

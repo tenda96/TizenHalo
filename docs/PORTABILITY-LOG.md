@@ -1,5 +1,20 @@
 # Portability work log
 
+## 2026-10-27 — RU7100 capture probe v0.3 (self-drawn colours)
+
+- Reworked the probe after noticing v0.2 was unusable in practice: showing a colour needs the probe
+  backgrounded (Tizen pauses it), and whole-screen capture would otherwise grab the probe's own dark
+  window. v0.3 paints full-screen red/green/blue on its own window and captures each via
+  secvideo_api_capture_screen, plus one video_main capture for comparison. Known painted colours settle
+  the VU/UV order and whether screen capture includes the graphics plane.
+- LegacyCapture refactored into a reusable session (one capture per call, buffers pinned once).
+  Program paints on the UI thread (EcoreMainloop.Post) and captures on the server thread.
+
+Verification completed (offline):
+
+- Capture-probe v0.3 host tests: PASS. tizen50 package 0.3.0 compiles with zero warnings/errors and
+  passes signed-digest verification. NOT verified on the TV. Not published; no new tag or PR.
+
 ## 2026-10-27 — RU7100 first live capture + probe v0.2
 
 - Owner ran capture-probe v0.1 on the TV. FIRST on-hardware capture, and it worked: legacy library

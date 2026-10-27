@@ -11,20 +11,29 @@ using ElmSharp;
 
 namespace TizenHaloCaptureProbe
 {
-    // Experimental Tizen 5.0 CAPTURE probe. Unlike the read-only inventory probe, this one can
-    // invoke the legacy capture library — but only when the owner explicitly asks, from the web
-    // page. It never captures on launch, never drives LEDs and never changes TV settings.
+    // Experimental Tizen 5.0 CAPTURE probe. It draws known full-screen colours ITSELF and captures the
+    // screen composition for each, so the owner does not have to show a photo or leave the app running
+    // in the background. It can invoke the legacy capture library, but only on an explicit owner
+    // action from the web page. It never captures on launch, never drives LEDs, never changes settings.
     class App : CoreUIApplication
     {
         const int Port = 8795;
-        const int RequestWidth = 640, RequestHeight = 360, CallsPerMethod = 2;
+        const int RequestWidth = 640, RequestHeight = 360;
+        const int RenderSettleMs = 350;
 
         TcpListener server; volatile bool stopped;
         Window window;
+        Rectangle paint;          // full-screen colour we draw, then capture
         Label state;
         string environment;
-        volatile string captureReport;   // null until the owner runs the test
+        volatile string captureReport;
         volatile bool running;
+
+        // Known colours we paint and capture. Strong primaries make the chroma order unambiguous.
+        static readonly (string name, int r, int g, int b)[] Palette =
+        {
+            ("red", 255, 0, 0), ("green", 0, 255, 0), ("blue", 0, 0, 255),
+        };
 
         static string Feature(string name)
         { try { string v; return Information.TryGetValue(name, out v) ? v : "unknown"; } catch { return "unknown"; } }
@@ -53,12 +62,11 @@ namespace TizenHaloCaptureProbe
             string platform = Feature("http://tizen.org/feature/platform.version");
             environment = TizenAmbilight.Json.ToJson(new Dictionary<string, object>
             {
-                {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.2.0"},
-                {"platform_version", platform},
-                {"model_name", Feature("http://tizen.org/feature/model_name")},
+                {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.3.0"},
+                {"platform_version", platform}, {"model_name", Feature("http://tizen.org/feature/model_name")},
                 {"process_bits", IntPtr.Size * 8},
                 {"firmware", "Enter firmware version when sharing this report"},
-                {"request", new Dictionary<string, object> { {"width", RequestWidth}, {"height", RequestHeight}, {"calls_per_method", CallsPerMethod}, {"methods", new[]{"video_main","screen_full"}} }},
+                {"request", new Dictionary<string, object> { {"width", RequestWidth}, {"height", RequestHeight} }},
                 {"capture_invoked", false},
             });
 
@@ -70,10 +78,14 @@ namespace TizenHaloCaptureProbe
                 Text("Tizen " + platform + " · " + (IntPtr.Size * 8) + "-bit. No capture has run yet.", 180, 30);
                 Text("Open on your phone or computer, then start the test there:", 290, 28);
                 Text("http://" + Address() + ":" + Port + "/", 400, 38, "#52e2bb");
-                Text("The test captures the video plane AND the whole screen. It does NOT drive the LEDs. Keep this screen open.", 540, 25);
-                Text("Back: close the probe", 720, 25);
+                Text("The test paints red/green/blue on this screen and captures each. The screen will flash colours — that is normal. No LEDs are touched.", 540, 25);
+                Text("Back: close the probe", 760, 25);
             }
             catch (Exception e) { Text("Probe server failed: " + e.Message, 200, 28, "#ffb389"); }
+
+            // Full-screen colour layer, created last so it sits on top. Hidden until the test runs.
+            paint = new Rectangle(window) { Color = new Color(9, 14, 19) };
+            paint.Move(0, 0); paint.Resize(screen.Width, screen.Height); paint.Hide();
             window.Show();
         }
 
@@ -119,11 +131,7 @@ namespace TizenHaloCaptureProbe
 
             string path = request[1];
             if (path == "/api/environment") { Reply(stream, 200, "application/json", Bytes(environment), "tizenhalo-capture-environment.json"); return; }
-            if (path == "/api/capture-test")
-            {
-                string report = RunCaptureOnce();
-                Reply(stream, 200, "application/json", Bytes(report), "tizenhalo-capture-report.json"); return;
-            }
+            if (path == "/api/capture-test") { Reply(stream, 200, "application/json", Bytes(RunCaptureTest()), "tizenhalo-capture-report.json"); return; }
             if (path == "/api/report")
             {
                 if (captureReport == null) { Reply(stream, 404, "text/plain", Bytes("Run the capture test first")); return; }
@@ -133,21 +141,40 @@ namespace TizenHaloCaptureProbe
 
             var html = new StringBuilder();
             html.Append("<!doctype html><meta name=viewport content='width=device-width'><title>TizenHalo capture probe</title>");
-            html.Append("<style>body{font:18px system-ui;max-width:820px;margin:40px auto;padding:20px;background:#09121b;color:#edf5fa}a{color:#52e2bb}button{font:600 18px system-ui;background:#52e2bb;color:#06251d;border:0;border-radius:10px;padding:14px 22px;cursor:pointer}code{color:#9fe}</style>");
+            html.Append("<style>body{font:18px system-ui;max-width:820px;margin:40px auto;padding:20px;background:#09121b;color:#edf5fa}a{color:#52e2bb}button{font:600 18px system-ui;background:#52e2bb;color:#06251d;border:0;border-radius:10px;padding:14px 22px;cursor:pointer}</style>");
             html.Append("<h1>TizenHalo capture probe</h1>");
-            html.Append("<p>Experimental Tizen 5.0 test. It asks the legacy capture library for ")
-                .Append(CallsPerMethod).Append(" frames at ").Append(RequestWidth).Append("&times;").Append(RequestHeight)
-                .Append(" from the video plane, then the same from the whole screen. It does <b>not</b> drive the LEDs or change any TV setting.</p>");
-            html.Append("<p>Put a bright, <b>solid-colour</b> picture on the TV first - a full-screen red or blue image or video is ideal - then run the test.</p>");
+            html.Append("<p>This test paints full-screen <b>red, green and blue</b> on the TV itself and captures each one, then also tries the video plane. You don't need to show a photo or leave the app in the background. The TV screen will flash those colours for a moment — that's expected. It does <b>not</b> drive the LEDs or change any TV setting.</p>");
             html.Append("<p><button onclick=\"go()\">Run capture test</button> <span id=s></span></p>");
             html.Append("<p><a href='/api/environment'>Download environment info</a></p>");
             html.Append("<pre id=o style='white-space:pre-wrap;background:#0f1b27;padding:14px;border-radius:10px'></pre>");
             html.Append("<p>Send the downloaded report back to the maintainer, with your exact model and firmware. Close with Back on the TV.</p>");
-            html.Append("<script>async function go(){var s=document.getElementById('s');s.textContent='running...';try{var r=await fetch('/api/capture-test');var t=await r.text();document.getElementById('o').textContent=t;var b=new Blob([t],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tizenhalo-capture-report.json';a.click();s.textContent='done - report downloaded';}catch(e){s.textContent='error: '+e;}}</script>");
+            html.Append("<script>async function go(){var s=document.getElementById('s');s.textContent='running... the TV will flash colours';try{var r=await fetch('/api/capture-test');var t=await r.text();document.getElementById('o').textContent=t;var b=new Blob([t],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tizenhalo-capture-report.json';a.click();s.textContent='done - report downloaded';}catch(e){s.textContent='error: '+e;}}</script>");
             Reply(stream, 200, "text/html; charset=utf-8", Bytes(html.ToString()));
         }
 
-        string RunCaptureOnce()
+        // Paint a full-screen colour on the UI thread and wait until it is on screen.
+        void PaintColour(int r, int g, int b)
+        {
+            using (var done = new ManualResetEventSlim(false))
+            {
+                EcoreMainloop.Post(() =>
+                {
+                    try { var sz = window.ScreenSize; paint.Move(0, 0); paint.Resize(sz.Width, sz.Height); paint.Color = new Color(r, g, b); paint.Show(); }
+                    catch { }
+                    finally { done.Set(); }
+                });
+                done.Wait(2000);
+            }
+            Thread.Sleep(RenderSettleMs);   // let the compositor present the colour before capturing
+        }
+
+        void HidePaint()
+        {
+            using (var done = new ManualResetEventSlim(false))
+            { EcoreMainloop.Post(() => { try { paint.Hide(); } catch { } finally { done.Set(); } }); done.Wait(2000); }
+        }
+
+        string RunCaptureTest()
         {
             if (running) return captureReport ?? "{\"error\":\"a capture test is already running\"}";
             running = true;
@@ -155,16 +182,38 @@ namespace TizenHaloCaptureProbe
             {
                 var record = new Dictionary<string, object>
                 {
-                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.2.0"},
+                    {"probe", "tizenhalo-capture-probe"}, {"probe_version", "0.3.0"},
                     {"platform_version", Feature("http://tizen.org/feature/platform.version")},
                     {"model_name", Feature("http://tizen.org/feature/model_name")},
                     {"firmware", "Enter firmware version when sharing this report"},
                     {"capture_invoked", true},
                 };
-                Dictionary<string, object> run;
-                try { run = LegacyCapture.Run(RequestWidth, RequestHeight, CallsPerMethod); }
-                catch (Exception e) { run = new Dictionary<string, object> { {"fatal", e.GetType().Name + ": " + e.Message} }; }
-                record["capture"] = run;
+                try
+                {
+                    using (var session = new LegacyCapture())
+                    {
+                        record["environment"] = session.Environment();
+                        if (!session.Ready) { record["error"] = "capture library not loaded: " + session.OpenError; }
+                        else
+                        {
+                            var painted = new List<object>();
+                            foreach (var col in Palette)
+                            {
+                                PaintColour(col.r, col.g, col.b);
+                                var one = session.CaptureOnce(LegacyCapture.ScreenSymbol, RequestWidth, RequestHeight);
+                                painted.Add(new Dictionary<string, object>
+                                {
+                                    {"colour", col.name}, {"rgb", new[] { col.r, col.g, col.b }}, {"screen_capture", one},
+                                });
+                            }
+                            HidePaint();
+                            record["painted_screen_captures"] = painted;
+                            // One video-plane capture for comparison (expected dark with no video playing).
+                            record["video_plane_capture"] = session.CaptureOnce(LegacyCapture.VideoMainSymbol, RequestWidth, RequestHeight);
+                        }
+                    }
+                }
+                catch (Exception e) { record["fatal"] = e.GetType().Name + ": " + e.Message; try { HidePaint(); } catch { } }
                 captureReport = TizenAmbilight.Json.ToJson(record);
                 try { if (state != null) EcoreMainloop.Post(() => state.Text = "Capture test finished. Download the report from your browser."); } catch { }
                 return captureReport;

@@ -29,10 +29,10 @@ namespace TizenAmbilight
                 {"ledsTop",30},{"ledsRight",20},{"ledsBottom",30},{"ledsLeft",20},
                 {"outputEnabled",true},{"targetFps",CaptureProfile.Current.DefaultFps},{"captureWidth",960},{"captureHeight",540},
                 {"interpolation",true},{"outputFps",30},{"precisePacing",true},{"hdrMode","auto"},{"alpha",.5},{"alphaFast",.85},
-                {"saturation",1.25},{"gain",1.0},{"gamma",1.15},{"black",18},
+                {"saturation",1.0},{"gain",1.0},{"gamma",1.0},{"black",10},
                 {"calRed",1.0},{"calGreen",1.0},{"calBlue",1.0},{"calSat",1.0},
                 {"calRedTo","#ff0000"},{"calGreenTo","#00ff00"},{"calBlueTo","#0000ff"},
-                {"adaptiveGamma",false},{"bars",true},{"barRows",true},{"barThresh",18},
+                {"adaptiveGamma",false},{"bars",true},{"barRows",true},{"barThresh",18},{"barTest",0},
                 {"punch",0},{"enableLegacyControl",false}
             };
         }
@@ -117,9 +117,9 @@ namespace TizenAmbilight
             {"alpha",new[]{.05,1}},{"alphaFast",new[]{.05,1}},{"saturation",new[]{0d,3}},
             {"calRed",new[]{0d,2}},{"calGreen",new[]{0d,2}},{"calBlue",new[]{0d,2}},{"calSat",new[]{0d,3}},
             {"gain",new[]{.1,2}},{"gamma",new[]{1d,3}},{"black",new[]{0d,60}},
-            {"barThresh",new[]{17d,40}},{"punch",new[]{0d,1}}
+            {"barThresh",new[]{17d,40}},{"barTest",new[]{0d,2}},{"punch",new[]{0d,1}}
         };
-        static readonly HashSet<string> Integers=new HashSet<string>{"wledPort","ledCount","mapOffset","outputFps","targetFps","captureWidth","captureHeight","ledsTop","ledsRight","ledsBottom","ledsLeft","barThresh"};
+        static readonly HashSet<string> Integers=new HashSet<string>{"wledPort","ledCount","mapOffset","outputFps","targetFps","captureWidth","captureHeight","ledsTop","ledsRight","ledsBottom","ledsLeft","barThresh","barTest"};
         static readonly HashSet<string> Booleans=new HashSet<string>{"interpolation","customLayout","manualSides","mapReverse","outputEnabled","precisePacing","adaptiveGamma","bars","barRows","enableLegacyControl"};
         public static Dictionary<string,object> MergeAndValidate(Dictionary<string,object> current,Dictionary<string,object> patch)
         {

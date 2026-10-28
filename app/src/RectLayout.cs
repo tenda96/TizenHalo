@@ -22,6 +22,25 @@ namespace TizenAmbilight
             }
             return colors;
         }
+        // "Fake black bars" diagnostic: light the edges that stay visible and leave OFF the ones a
+        // bar would cover, so the installer can watch the strip and see which physical LEDs fall on
+        // each side. Lit edges keep the 4-edge test colours (top=red, right=green, bottom=blue,
+        // left=yellow). mode 1 = letterbox (top+bottom covered), 2 = pillarbox (left+right covered).
+        public static ZoneColors BarTestColors(ZoneLayout layout, int mode)
+        {
+            var colors = new ZoneColors(layout.Total);
+            for (int i = 0; i < layout.Total; i++)
+            {
+                string edge = layout.Zones[i].Edge;
+                bool covered = mode == 2 ? (edge == "left" || edge == "right")
+                                         : (edge == "top" || edge == "bottom");
+                if (covered) continue;   // stays 0,0,0: this is the LED a real bar would switch off
+                colors.R[i] = (byte)((edge == "top" || edge == "left") ? 255 : 0);
+                colors.G[i] = (byte)((edge == "right" || edge == "left") ? 255 : 0);
+                colors.B[i] = (byte)(edge == "bottom" ? 255 : 0);
+            }
+            return colors;
+        }
         public static Zone[] Create(int width, int height)
         {
             if (width < 1 || height < 1) throw new ArgumentOutOfRangeException("width/height");

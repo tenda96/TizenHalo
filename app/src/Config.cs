@@ -31,6 +31,7 @@ namespace TizenAmbilight
             public bool BarRows;        // also test ROWS (letterbox); see the ReadConfig note
             public int BarThresh;       // a row/column is bar if >=90% of it is below this
             public int BarHold;         // frames a new bar size must persist before being adopted
+            public int BarTest;         // diagnostic: 0 off, 1 fake letterbox (top/bottom), 2 fake pillarbox (left/right)
             // ---- ambience ----
             public double Punch;        // brief brightness/saturation overshoot on a cut, 0 = off
             public int PunchFrames;     // how many frames the punch decays over
@@ -306,6 +307,10 @@ namespace TizenAmbilight
             c.BarHold = PrefInt("barHold", 8);
             if (c.BarHold < 1) c.BarHold = 1;
             if (c.BarHold > 90) c.BarHold = 90;
+            // Diagnostic "fake black bars": force a letterbox (1) or pillarbox (2) blanking,
+            // regardless of the picture, so the installer can see which LEDs a bar switches off.
+            // 0 = off (normal operation).
+            c.BarTest = Math.Max(0, Math.Min(2, PrefInt("barTest", 0)));
             c.Punch = PrefDouble("punch", 0.15);
             if (c.Punch < 0) c.Punch = 0;
             if (c.Punch > 1.0) c.Punch = 1.0;

@@ -178,6 +178,16 @@ class Program
         rejected=false;
         try {LocalSettings.MergeAndValidate(settings,new System.Collections.Generic.Dictionary<string,object>{{"ledCount",1000d}});}catch(ArgumentException){rejected=true;}
         Check(rejected,"LED count must stay within the DRGB packet limit");
+        // A fresh install must start colour-neutral (no hidden preset) and with the diagnostic off.
+        Check(Convert.ToDouble(settings["saturation"])==1.0 && Convert.ToDouble(settings["gamma"])==1.0,
+              "Fresh install must start with neutral saturation and gamma");
+        Check(Convert.ToInt32(settings["black"])==10, "Default black threshold must be 10");
+        Check(Convert.ToInt32(settings["barTest"])==0, "Fake black bars must default off");
+        rejected=false;
+        try {LocalSettings.MergeAndValidate(settings,new System.Collections.Generic.Dictionary<string,object>{{"barTest",3d}});}catch(ArgumentException){rejected=true;}
+        Check(rejected,"barTest out of range must be rejected");
+        Check(Convert.ToInt32(LocalSettings.MergeAndValidate(settings,new System.Collections.Generic.Dictionary<string,object>{{"barTest",2d}})["barTest"])==2,
+              "barTest must accept the pillarbox value");
         string temp=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"q74t-tests-"+Guid.NewGuid().ToString("N"));
         try
         {
@@ -210,6 +220,20 @@ class Program
         var split=new ZoneLayout(960,540,100,.08);
         Check(split.TopCount==30&&split.RightCount==20&&split.BottomCount==30&&split.LeftCount==20,"Manual side counts preserved");
         RectLayout.StandardTop=RectLayout.StandardRight=RectLayout.StandardBottom=RectLayout.StandardLeft=0;
+        // "Fake black bars" diagnostic: letterbox leaves ONLY top/bottom LEDs off, pillarbox leaves
+        // ONLY left/right off, so the installer sees which physical LEDs fall on each side.
+        var barLayout = new ZoneLayout(960,540,100,.08);
+        var letterbox = RectLayout.BarTestColors(barLayout,1);
+        var pillarbox = RectLayout.BarTestColors(barLayout,2);
+        for (int i=0;i<barLayout.Total;i++)
+        {
+            string e = barLayout.Zones[i].Edge;
+            bool sides = e=="left"||e=="right", topbot = e=="top"||e=="bottom";
+            bool letterLit = letterbox.R[i]!=0||letterbox.G[i]!=0||letterbox.B[i]!=0;
+            bool pillarLit = pillarbox.R[i]!=0||pillarbox.G[i]!=0||pillarbox.B[i]!=0;
+            Check(letterLit==sides, "Fake letterbox must switch off exactly the top and bottom LEDs");
+            Check(pillarLit==topbot, "Fake pillarbox must switch off exactly the left and right LEDs");
+        }
         TizenHaloLauncher.QrPng.Save("http://192.0.2.10:8793",System.IO.Path.Combine(AppContext.BaseDirectory,"settings-qr.png"));
         Console.WriteLine("PASS: black-bar crop, local persistence, config.json seeding, settings validation, fresh launch handshake, manual sides, QR generated");
         Console.WriteLine("PASS: standard layout at 960x540 and 640x360, DRGB mapping and offset, blackout, ARM32 guard");

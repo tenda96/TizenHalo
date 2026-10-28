@@ -515,6 +515,27 @@ namespace TizenAmbilight
                         continue;
                     }
 
+                    // A "fake black bars" diagnostic: force a letterbox (1) or pillarbox (2) blanking,
+                    // independent of the picture, so the installer can see on the strip which LEDs a
+                    // bar switches off. Routed through the real mapping (offset/reverse/ledCount) and
+                    // works without capture, like the test pattern above; set barTest=0 to resume.
+                    if (cfg.BarTest != 0)
+                    {
+                        InterpolatedOutput.Stop();
+                        PpiCapture.Park();
+                        layout = new ZoneLayout(VideoPlaneCapture.PlaneW, VideoPlaneCapture.PlaneH,
+                                                cfg.ZoneCount, cfg.BandFrac);
+                        ZoneColors pattern = RectLayout.BarTestColors(layout, cfg.BarTest);
+                        string testError = CanSend(cfg) ? WledOutput.Send(cfg.WledIp, cfg.WledPort,
+                            WledOutput.BuildDrgbMapped(pattern, (byte)cfg.WledTimeout, 1.0, 1.0, 0,
+                                                       cfg.MapOffset, cfg.MapReverse, cfg.LedCount)) : "output disabled";
+                        st.LastStatus = (cfg.BarTest == 1 ? "fake letterbox: top/bottom LEDs off"
+                                                          : "fake pillarbox: left/right LEDs off") + " · " + (testError ?? "UDP sent");
+                        MaybePost(cfg, captureDir, layout, pattern, st);
+                        Thread.Sleep(100);
+                        continue;
+                    }
+
                     var fsw = Stopwatch.StartNew();
                     frameStartMs = paceClock.Elapsed.TotalMilliseconds;   // monotonic frame-start for pacing
 

@@ -8,9 +8,9 @@ TizenHalo is a fork of [TizenAmbilight](https://github.com/RitwickVerma/TizenAmb
 
 You set it up entirely from your phone — a web page served by the TV:
 
-| Settings | LED layout editor |
+| Settings | LED Studio layout editor |
 |---|---|
-| ![TizenHalo settings page](docs/images/settings.jpg) | ![LED layout editor](docs/images/layout-editor.jpg) |
+| ![TizenHalo settings page](docs/images/settings.jpg) | ![LED Studio layout editor](docs/images/layout-editor.jpg) |
 
 ## What it does
 
@@ -18,8 +18,10 @@ You set it up entirely from your phone — a web page served by the TV:
   QR code to the settings page.
 - Captures the picture and averages the edges into LED zones, then smooths the LED output (interpolation
   to 30 or 60 Hz) so the light stays fluid even when captures are only a few per second.
-- Uses a standard frame around the screen, or a layout you draw in the built-in editor (HyperHDR layouts
-  can be imported) — LEDs under a stand, gaps and odd shapes included.
+- Uses a standard frame around the screen, or a layout you draw in **LED Studio**, the built-in editor:
+  draw the strip segment by segment as it is mounted (LEDs under a stand, cable-only jumps, odd shapes),
+  watch it live on the real strip while you edit, and dock each segment to the TV edge it takes its color
+  from. HyperHDR layouts can be imported.
 - Detects black bars, handles HDR10 and HLG where available, and adapts its smoothing to the scene.
 - **Colour calibration** (see below) to match the strip's colours to what you want.
 
@@ -71,8 +73,9 @@ To build the packages yourself, see [Build from source](docs/TECHNICAL.md#build-
 3. Play a video. The lights follow it; press Back on the remote to return to the video — the service
    keeps running.
 
-For anything other than a plain frame (LEDs under a stand, gaps, odd shapes), open the **LED layout
-editor** from the settings page. Every setting is described in [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
+For anything other than a plain frame (LEDs under a stand, gaps, odd shapes), open **LED Studio** from
+the settings page. Turn on **Live on strip** to see on the real LEDs which ones each segment covers, then
+**Apply to TV**. Every setting is described in [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
 ## Colour calibration
 

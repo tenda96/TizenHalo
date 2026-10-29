@@ -499,6 +499,26 @@ namespace TizenAmbilight
                         }
                     }
 
+                    // LED Studio live preview: while the editor sends frames they go to the strip as-is (already
+                    // in strip order) and no capture runs. Frames expire, so closing the page resumes the picture.
+                    byte[] preview = LivePreview.Current(LivePreview.NowMs());
+                    if (preview != null)
+                    {
+                        InterpolatedOutput.Stop();
+                        PpiCapture.Park();
+                        // pad to the configured strip so LEDs past the drawing go dark instead of keeping a colour
+                        int previewLeds = Math.Min(WledOutput.MaxDrgbLeds, Math.Max(preview.Length / 3, cfg.LedCount));
+                        var frame = new ZoneColors(previewLeds);
+                        for (int i = 0; i < preview.Length / 3 && i < previewLeds; i++)
+                        { frame.R[i] = preview[3 * i]; frame.G[i] = preview[3 * i + 1]; frame.B[i] = preview[3 * i + 2]; }
+                        string previewError = CanSend(cfg) ? WledOutput.Send(cfg.WledIp, cfg.WledPort,
+                            WledOutput.BuildDrgb(frame, (byte)cfg.WledTimeout)) : "output disabled";
+                        st.LastStatus = "LED Studio live preview · " + (previewError ?? "UDP sent");
+                        MaybePost(cfg, captureDir, layout, smoothed, st);
+                        Thread.Sleep(50);
+                        continue;
+                    }
+
                     // A mapping/UDP test must work even when video capture fails.
                     if (cfg.TestPattern)
                     {

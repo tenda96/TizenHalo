@@ -6,6 +6,7 @@
 <Compile Include="../app/src/InterpolatedOutput.cs"/>
 <Compile Include="../app/src/LocalSettings.cs"/>
 <Compile Include="../app/src/CustomLayout.cs"/>
+<Compile Include="../app/src/LivePreview.cs"/>
 <Compile Include="../app/src/CaptureMethods.cs"/>
 <Compile Include="../app/src/RgbMeasureApi.cs"/>
 <Compile Include="../app/src/CaptureBackendStartup.cs"/>

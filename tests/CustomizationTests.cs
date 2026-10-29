@@ -20,6 +20,24 @@ static class CustomizationTests
   var doc=CustomLayout.Parse(Json.ToJson(new Dictionary<string,object>{{"schema",1},{"name","TV and stand"},{"leds",rows}}));
   Check(CustomLayout.Count(doc)==4,"Custom four-LED strip must be accepted, including furniture positions");
   Check(CustomLayout.Count(CustomLayout.Parse(Json.ToJson(rows)))==4,"Bare HyperHDR array import");
+  // The LED Studio drawing survives a save and reload; one that no longer matches the LEDs is dropped, never trusted.
+  var studio=new Dictionary<string,object>{{"v",1},{"verts",new List<object>{new Dictionary<string,object>{{"x",0d},{"y",1.3}},new Dictionary<string,object>{{"x",1d},{"y",1.3}}}},
+   {"segs",new List<object>{new Dictionary<string,object>{{"type","led"},{"leds",4},{"zEdge","bottom"},{"zFrom",0d},{"zTo",1d},{"zDepth",.1},{"zLayer",2}}}},{"reversed",true}};
+  var kept=CustomLayout.Parse(Json.ToJson(CustomLayout.Parse(Json.ToJson(new Dictionary<string,object>{{"schema",1},{"leds",rows},{"studio",studio}}))));
+  var keptStudio=kept.ContainsKey("studio")?(Dictionary<string,object>)kept["studio"]:null;
+  Check(keptStudio!=null&&(bool)keptStudio["reversed"]&&Convert.ToInt32(((Dictionary<string,object>)((List<object>)keptStudio["segs"])[0])["zLayer"])==2,"LED Studio drawing must survive a save and reload");
+  ((Dictionary<string,object>)((List<object>)studio["segs"])[0])["leds"]=5;
+  Check(!CustomLayout.Parse(Json.ToJson(new Dictionary<string,object>{{"schema",1},{"leds",rows},{"studio",studio}})).ContainsKey("studio"),"A drawing that no longer matches the LEDs must be dropped");
+  studio["v"]="broken";
+  Check(CustomLayout.Count(CustomLayout.Parse(Json.ToJson(new Dictionary<string,object>{{"schema",1},{"leds",rows},{"studio",studio}})))==4,"A broken drawing must not block the layout");
+  // LED Studio live preview: a frame is shown until the editor stops sending it; off ends it at once.
+  LivePreview.Set("ff000000ff00",1000);var preview=LivePreview.Current(1500);
+  Check(preview!=null&&preview.Length==6&&preview[0]==255&&preview[4]==255&&preview[5]==0,"Preview frame must keep strip order and colours");
+  Check(LivePreview.Current(1000+LivePreview.ExpiryMs+1)==null,"A preview the editor stopped sending must expire");
+  Reject(()=>LivePreview.Set("ff00",0),"Preview needs whole rrggbb triples");
+  Reject(()=>LivePreview.Set("zz0000",0),"Preview must be hex");
+  Reject(()=>LivePreview.Set(new string('0',491*6),0),"Preview is limited to one DRGB packet");
+  LivePreview.Set("ffffff",0);LivePreview.Stop();Check(LivePreview.Current(1)==null,"Off must end the preview at once");
   IntPtr header=System.Runtime.InteropServices.Marshal.AllocHGlobal(80);
   try {
    for(int i=0;i<80;i++)System.Runtime.InteropServices.Marshal.WriteByte(header,i,0);

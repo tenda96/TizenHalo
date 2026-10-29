@@ -234,6 +234,24 @@ namespace TizenAmbilight
             return Send(ip, port, BuildBlackout(ledCount));
         }
 
+        // HIGH-WATER PAD. In realtime mode WLED rewrites only the LEDs a packet covers; the rest keep their
+        // last colour. Once any packet (the LED Studio live preview, a longer layout) has lit N LEDs, every
+        // later packet is padded with black up to N, or a shorter frame leaves the tail stuck in an old colour
+        // until WLED is restarted. Called under _udpLock.
+        static int _highWater;
+        static byte[] _padScratch;
+        static byte[] PadToHighWater(byte[] payload)
+        {
+            if (payload == null || payload.Length < 2 || payload[0] != ProtocolDrgb) return payload;
+            int leds = (payload.Length - 2) / 3;
+            if (leds >= _highWater) { _highWater = Math.Min(MaxDrgbLeds, leds); return payload; }
+            int need = 2 + _highWater * 3;
+            if (_padScratch == null || _padScratch.Length != need) _padScratch = new byte[need];
+            Buffer.BlockCopy(payload, 0, _padScratch, 0, payload.Length);
+            Array.Clear(_padScratch, payload.Length, need - payload.Length);
+            return _padScratch;
+        }
+
         static UdpClient _udp;
         static IPAddress _udpAddr;
         static int _udpPort = -1;
@@ -267,6 +285,7 @@ namespace TizenAmbilight
                         _udpAddr = addr;
                         _udpPort = port;
                     }
+                    payload = PadToHighWater(payload);
                     _udp.Send(payload, payload.Length);
                 }
                 return null;

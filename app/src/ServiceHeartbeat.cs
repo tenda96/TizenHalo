@@ -7,7 +7,7 @@ namespace TizenAmbilight
     // Shared by the UI and backend, both installed in the SAME Tizen package.
     public static class ServiceHeartbeat
     {
-        public const string Version = "tizenhalo-1.1.1";
+        public const string Version = "tizenhalo-1.1.3";
         public const string ServiceId = "io.github.tenda96.TizenHalo.Service";
         public const string FileName = "tizenhalo-service-state.json";
         static string _path;

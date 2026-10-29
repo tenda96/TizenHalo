@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="io.github.tenda96.TizenHalo" version="1.1.1" api-version="5.5" xmlns="http://tizen.org/ns/packages">
+<manifest package="io.github.tenda96.TizenHalo" version="1.1.3" api-version="5.5" xmlns="http://tizen.org/ns/packages">
     <author>tenda96</author>
     <profile name="tv" />
     <ui-application appid="io.github.tenda96.TizenHalo" exec="TizenHalo.dll" multiple="false" nodisplay="false" taskmanage="true" api-version="5.5" type="dotnet">

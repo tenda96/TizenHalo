@@ -31,7 +31,11 @@ class Program
                 byte[] last=null;while(receiver.Available>0)last=receiver.Receive(ref endpoint);
                 Check(last!=null&&last[2]==0&&last[3]==0&&last[4]==0,"Blackout must be the final packet");
                 System.Threading.Thread.Sleep(150);Check(receiver.Available==0,"No interpolated packet may relight after blackout");
-                Console.WriteLine("PASS: loopback interpolation sends intermediate packets; blackout stops sender without relighting");
+                // a shorter frame after a longer one must black out the tail, not leave it lit
+                WledOutput.Send("127.0.0.1",port,new byte[]{2,1,9,9,9,9,9,9,9,9,9,9,9,9});receiver.Receive(ref endpoint);
+                var shorter=WledOutput.Send("127.0.0.1",port,new byte[]{2,1,7,7,7})==null?receiver.Receive(ref endpoint):null;
+                Check(shorter!=null&&shorter.Length==14&&shorter[2]==7&&shorter[5]==0&&shorter[13]==0,"A shorter packet must be padded with black up to the LEDs already lit");
+                Console.WriteLine("PASS: loopback interpolation sends intermediate packets; blackout stops sender without relighting; shorter frames black out the tail");
             }
             return;
         }

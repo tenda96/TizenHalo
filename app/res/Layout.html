@@ -1,119 +1,404 @@
 <!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LED Studio · TizenHalo</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1119;--panel:#131e2a;--border:#293b4b;--ink:#eaf0f7;--muted:#99aebf;--accent:#4ce0b2;font:15px system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}*{box-sizing:border-box}body{margin:0}main{max-width:1400px;margin:auto;padding:28px 24px 110px}a{color:var(--accent)}header{display:flex;justify-content:space-between;gap:24px;align-items:center;margin:24px 0}.eyebrow{font-size:12px;letter-spacing:.2em;color:var(--accent)}h1{font-size:38px;margin:9px 0}h2{font-size:19px;margin:0 0 12px}h3{font-size:15px;margin:18px 0 10px}p{color:var(--muted);line-height:1.6;margin:8px 0 16px}.note{font-size:13px}.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;margin:16px 0}.columns{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,1fr);gap:20px}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{font-size:13px;display:block;color:var(--muted)}input,select{width:100%;border:1px solid #40586b;background:#0b141e;color:var(--ink);border-radius:8px;padding:10px;margin-top:6px;font:inherit}input[type=checkbox]{width:18px;vertical-align:middle;accent-color:var(--accent)}button,.button{font:inherit;font-weight:650;padding:11px 16px;border-radius:9px;background:#22384a;border:1px solid #385368;color:var(--ink);cursor:pointer;text-decoration:none;display:inline-block}button.primary{background:var(--accent);color:#092a22;border:0}button:disabled{opacity:.45;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.danger{color:#ffaba8}.pill{background:#1b3d36;color:#7ef1ce;padding:9px 15px;border-radius:24px;white-space:nowrap}svg{display:block;width:100%;border:1px solid var(--border);border-radius:12px;background:#0a131e;touch-action:none}#physical{aspect-ratio:1.5}#samples{aspect-ratio:16/9}svg circle,svg .zone{cursor:pointer}svg text{pointer-events:none;font-family:system-ui,sans-serif}#tip{min-height:42px;font-size:13px}.hidden{display:none!important}summary{cursor:pointer;color:var(--accent);padding:4px 0}details[open] summary{margin-bottom:16px}.footer{position:fixed;bottom:0;left:0;right:0;background:#0c141eee;border-top:1px solid var(--border);padding:16px 24px;z-index:5}.footer>div{max-width:1350px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}#message{font-size:14px}#message.error{color:#ffaba8}.count{font-size:23px;font-weight:750}.smallbuttons button{font-size:13px;padding:8px 11px}.separator{border-top:1px solid var(--border);margin:20px 0}.toolbar{margin:14px 0}.file{display:none}.help{max-width:780px}.step{color:var(--accent);margin-right:8px}#offline{color:#ffd28d}.topname{min-width:200px;flex:1}.canvas-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.canvas-title label{white-space:nowrap}.selection{background:#0b1621;padding:14px;border-radius:10px;margin-top:16px}@media(max-width:900px){.columns{grid-template-columns:1fr}h1{font-size:31px}header{align-items:flex-start}.footer>div{gap:12px}main{padding:20px 14px 130px}.card{padding:17px}.footer{padding:12px 14px}}@media(max-width:500px){header{display:block}.pill{display:inline-block;margin-top:8px}.footer button{padding:12px}.grid{gap:9px}}
+/* Two canvases: the strip as mounted (left) and the picture zones docked to the TV edges (right),
+   each with its inspector; a fixed bar applies to the TV. Dark and self-contained, like the settings page. */
+:root{color-scheme:dark;--bg:#0a1018;--panel:#131f2c;--panel2:#0b1724;--border:#27384a;--border-2:#35526a;
+  --ink:#eaf0f7;--muted:#93a7b9;--accent:#4ce0b2;--accent-ink:#06271f;--link:#6a7f93;--sel:#ffcf5d;--danger:#ff968f;
+  --tv:#0e2030;--tv-line:#3a5870;--grid:#16283a;--mono:ui-monospace,"SF Mono",Menlo,monospace;
+  font:15px/1.5 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg)}
+main{max-width:1320px;margin:auto;padding:22px max(16px,env(safe-area-inset-right,0px)) 120px max(16px,env(safe-area-inset-left,0px))}
+a{color:var(--accent)}header{margin:14px 0 6px}
+.eyebrow{font-size:12px;letter-spacing:.2em;color:var(--accent)}
+h1{font-size:32px;margin:8px 0 6px;text-wrap:balance}header p{color:var(--muted);margin:0;max-width:66ch}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 4px}.toolbar .spacer{flex:1}
+button{font:inherit;font-weight:600;color:var(--ink);background:var(--panel);border:1px solid var(--border-2);border-radius:9px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+button:hover{border-color:var(--accent)}button.on,button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost:not(.on){background:transparent}button.danger{color:var(--danger);border-color:var(--danger)}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.badge{font-weight:700;background:var(--panel2);border:1px solid var(--border);border-radius:22px;padding:8px 15px;white-space:nowrap}.badge b{color:var(--accent);font-size:19px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;min-width:0}
+.card h2{font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:9px}
+.step{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:3px 7px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 12px}
+svg{display:block;width:100%;border:1px solid var(--border);border-radius:11px;background:var(--panel2);touch-action:none;user-select:none;-webkit-user-select:none}
+#stage{aspect-ratio:1000/640}#tv{aspect-ratio:1300/762}svg text{pointer-events:none;font-family:system-ui,sans-serif}
+.hint{min-height:20px;font-size:13px;color:var(--muted);margin:10px 2px 0}.hint.live{color:var(--accent)}
+.insp{background:var(--panel2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-top:12px}.insp.off{opacity:.55}
+.insp h3{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tag{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}.tag.led{background:#1b3d36;color:#7ef1ce}.tag.link{background:#25313d;color:#9fb3c4}
+.range{font-family:var(--mono);color:var(--accent);font-size:12px}
+.seg-type{display:flex;border:1px solid var(--border-2);border-radius:9px;overflow:hidden;margin-bottom:12px}
+.seg-type button{flex:1;border:0;border-radius:0;justify-content:center;background:transparent}.seg-type button.on{background:var(--accent);color:var(--accent-ink)}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:11px 0}.field label{color:var(--muted);font-size:13px}
+.val{font-family:var(--mono);color:var(--accent);font-weight:600;min-width:46px;text-align:right}
+input[type=range]{accent-color:var(--accent);flex:1;min-width:0}
+input[type=number],input[type=text],select{background:var(--panel);color:var(--ink);border:1px solid var(--border-2);border-radius:8px;padding:8px;font:inherit}
+input[type=number]{width:84px}
+.stepper{display:flex;align-items:center;gap:8px}.stepper button{padding:6px 11px}.stepper b{font-family:var(--mono);min-width:20px;text-align:center}
+.muted{color:var(--muted);font-size:12.5px;line-height:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12.5px;color:var(--muted)}.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}.dash{width:16px;height:0;border-top:3px dashed var(--link);display:inline-block}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row.end{justify-content:flex-end}
+details.file{margin-top:16px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:0 16px}
+details.file summary{cursor:pointer;padding:14px 0;font-weight:600;color:var(--accent)}
+details.file textarea{width:100%;height:150px;background:var(--panel2);color:var(--ink);border:1px solid var(--border);border-radius:9px;padding:12px;font:12px/1.5 var(--mono);resize:vertical;margin:10px 0}
+.file-input{display:none}#offline{color:#ffd28d;font-size:13px;margin:6px 2px 0}#offline:empty{display:none}
+.footer{position:fixed;bottom:0;left:0;right:0;background:#0c141eee;border-top:1px solid var(--border);padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:5}
+.footer>div{max-width:1300px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:16px}
+#message{font-size:14px}#message.error{color:var(--danger)}
+@media (max-width:880px){.cols{grid-template-columns:1fr}h1{font-size:26px}}
 </style>
 <main>
 <a href="/" id="back">← TizenHalo settings</a>
-<header><div><div class="eyebrow">TIZENHALO / LED STUDIO</div><h1>Draw your light.</h1><p>The strip as it is mounted. The color from where you want it.</p></div><span class="pill"><span id="total" class="count">0</span> LEDs · front view</span></header>
-<div class="card"><div class="row between"><label class="topname">Layout name<input id="layoutName" maxlength="64" value="My layout"></label><div class="row"><button id="load">Reload from TV</button><button id="import">Import JSON</button><button id="export">Download JSON</button><input class="file" type="file" id="file" accept=".json,application/json"></div></div><p class="note" id="offline"></p>
-<details id="wizard"><summary><span class="step">01</span>Create a TV frame</summary><p class="note">Enter the LEDs per side. The frame replaces the current drawing; extra segments can be added afterwards.</p><div class="grid"><label>Top<input id="top" type="number" min="0" max="490" value="30"></label><label>Right<input id="right" type="number" min="0" max="490" value="18"></label><label>Bottom<input id="bottom" type="number" min="0" max="490" value="30"></label><label>Left<input id="left" type="number" min="0" max="490" value="18"></label><label>The first LED is…<select id="corner"><option value="0">Top left</option><option value="1">Top right</option><option value="2">Bottom right</option><option value="3">Bottom left</option></select></label><label>The strip continues…<select id="direction"><option value="cw">Clockwise</option><option value="ccw">Counter-clockwise</option></select></label><label>Color zone depth (%)<input id="depth" type="number" min="1" max="40" value="8"></label></div><div class="toolbar"><button id="generate">Generate frame</button></div></details></div>
-<div class="columns"><div>
-<section class="card"><div class="canvas-title"><h2><span class="step">02</span>The physical strip</h2><label><input id="numbers" type="checkbox"> Numbers</label></div><p class="note">Drag the dots to where the LEDs are mounted, furniture included. The order follows the cable; the white circle is LED 0.</p><svg id="physical" viewBox="-140 -140 1280 860" aria-label="Physical LED positions, front view"></svg><p id="tip">Select an LED to see its color zone on the right.</p><div class="row smallbuttons"><button id="addSegment">+ Draw a segment</button><button id="fit">Fit view</button><button id="undo" disabled>Undo</button></div>
-<div id="segmentBox" class="selection hidden"><h3>New segment</h3><div class="grid"><label>How many LEDs?<input id="segmentCount" type="number" min="1" max="490" value="20"></label><label>They take their color from…<select id="segmentEdge"><option value="auto">Nearest TV edge</option><option value="bottom">Bottom edge</option><option value="top">Top edge</option><option value="left">Left edge</option><option value="right">Right edge</option></select></label></div><p class="note">The first point is where the cable of this segment starts. New LEDs are added after the last existing one.</p><div class="row"><button id="confirmSegment" class="primary">Add</button><button id="cancelSegment">Cancel</button></div></div></section>
-<section class="card help"><h2>How to read it</h2><p><strong>Physical position</strong>: where the LED is mounted. <strong>Color zone</strong>: which part of the picture lights it. An LED under a TV stand can still follow the bottom edge of the picture.</p><p class="note">The colored preview only helps reading the zones; it is not the live video. Editing does not change the lights until you press “Apply to TV”.</p></section>
-</div><div>
-<section class="card"><h2><span class="step">03</span>The color zone</h2><p class="note">Click a zone to select its LED. Drag it to move the part of the picture it takes its color from.</p><svg id="samples" viewBox="0 0 1000 562.5" aria-label="Picture zones assigned to the LEDs"></svg>
-<div class="selection"><div class="row between"><label>Selected LED · index from 0<input id="selected" type="number" min="0" value="0"></label><div class="row smallbuttons"><button id="previous" aria-label="Previous LED">←</button><button id="next" aria-label="Next LED">→</button></div></div><h3>Picture area (%)</h3><div class="grid"><label>From left<input id="hmin" type="number" min="0" max="100" step="0.1"></label><label>To right<input id="hmax" type="number" min="0" max="100" step="0.1"></label><label>From top<input id="vmin" type="number" min="0" max="100" step="0.1"></label><label>To bottom<input id="vmax" type="number" min="0" max="100" step="0.1"></label></div><p class="note">Overlapping zones are allowed: several LEDs can follow the same part of the picture.</p><div class="row smallbuttons"><button id="first">Make this LED 0</button><button id="reverse">Reverse order</button><button id="duplicate">Duplicate LED</button><button id="delete" class="danger">Delete LED</button></div></div>
-<details><summary>Exact position and order</summary><div class="grid"><label>Physical X (% of TV width)<input id="physicalX" type="number" min="-200" max="300" step="0.1"></label><label>Physical Y (% of TV height)<input id="physicalY" type="number" min="-200" max="300" step="0.1"></label></div><p class="note">Vertically, 100% is the bottom edge of the TV; 120% is below it.</p><div class="row smallbuttons"><button id="up">Move earlier on the cable</button><button id="down">Move later on the cable</button></div></details></section>
-</div></div>
-</main><div class="footer"><div><span id="message" role="status" aria-live="polite">Loading layout…</span><button id="apply" class="primary" disabled>Apply to TV</button></div></div>
+<header>
+  <div class="eyebrow">TIZENHALO / LED STUDIO</div>
+  <h1>Draw your light.</h1>
+  <p>Draw the strip point by point as it is mounted, say where there are LEDs and where only cable, then dock each segment to the TV edge it takes its color from. Select a segment and its LEDs light up in both views.</p>
+</header>
+<p id="offline"></p>
+<div class="toolbar">
+  <button id="pen" class="ghost">✎ Pen</button>
+  <button id="penKind" class="ghost" title="What the next stretch you draw with the pen is">Draws: LEDs</button>
+  <button id="snap" class="ghost on">▦ Grid</button>
+  <button id="overlap" class="ghost on">▒ Overlaps</button>
+  <button id="live" class="ghost" title="Show this drawing on the real strip while you edit">💡 Live on strip</button>
+  <button id="frame" class="ghost">▭ TV frame</button>
+  <button id="reverse" class="ghost">⇄ Reverse direction</button>
+  <button id="undo" class="ghost" disabled>↶ Undo</button>
+  <button id="clear" class="ghost danger">Clear</button>
+  <span class="spacer"></span>
+  <span class="badge"><b id="total">0</b> LEDs · <span id="segcount">0 segments</span></span>
+</div>
+<p class="hint" id="warn" style="color:var(--danger)"></p>
+<div class="cols">
+  <section class="card">
+    <h2><span class="step">01</span> The strip (front view)</h2>
+    <p class="sub">Use the pen to place points along the cable; each stretch between two points is a segment. Drag the light dots to adjust.</p>
+    <svg id="stage" viewBox="0 0 1000 640" aria-label="Physical path of the strip"></svg>
+    <p class="hint" id="hint">Use <b>Pen</b> to draw, or start from a <b>TV frame</b>.</p>
+    <div class="legend">
+      <span><i class="dot" style="background:#4ce0b2"></i> LED segment</span>
+      <span><i class="dash"></i> connection only (cable)</span>
+      <span><i class="dot" style="background:#fff;border:1px solid #888"></i> LED 0 (start)</span>
+    </div>
+    <div class="insp off" id="segInsp">
+      <h3><span id="segTitle">No segment selected</span> <span class="tag link" id="segTag">—</span></h3>
+      <p class="muted" id="segEmpty">Click a segment in the drawing to change its type and LED count.</p>
+      <div id="segEdit" hidden>
+        <div class="seg-type"><button id="typeLed">LED segment</button><button id="typeLink">Connection only</button></div>
+        <div class="field" id="ledsField"><label for="segLeds">LEDs in this segment</label><input type="number" id="segLeds" min="1" max="490" value="20"></div>
+        <p class="range" id="segRange" hidden></p>
+        <p class="muted" id="linkNote" hidden>Cable only: no LEDs, it just carries the strip on (for example the jump down to a TV stand).</p>
+        <div class="row end" style="margin-top:12px"><button id="segStart" class="ghost">Start here</button><button id="segDelete" class="ghost danger">Delete segment</button></div>
+      </div>
+    </div>
+  </section>
+  <section class="card">
+    <h2><span class="step">02</span> The picture zones</h2>
+    <p class="sub">Each LED segment is a block docked to a TV edge. Drag it along the edge (outwards or inwards to change row), pull the handles to widen it, choose edge and depth. Shift-click or drag a box to select several.</p>
+    <svg id="tv" viewBox="-150 -100 1300 762" aria-label="Picture zones docked to the TV edges"></svg>
+    <p class="hint" id="tvhint">Click a block to select its segment; Shift to add more.</p>
+    <div class="insp off" id="zoneInsp">
+      <h3><span id="zoneTitle">No block selected</span><span class="row"><button id="selAll" class="ghost" style="padding:5px 9px">All</button><button id="selNone" class="ghost" style="padding:5px 9px">None</button></span></h3>
+      <div id="zoneEdit" hidden>
+        <div class="field"><label for="zEdge">Takes its color from</label><select id="zEdge"><option value="top">Top edge</option><option value="right">Right edge</option><option value="bottom">Bottom edge</option><option value="left">Left edge</option></select></div>
+        <div class="field"><label for="zDepth">Depth into the picture</label><input type="range" id="zDepth" min="2" max="50" step="1" value="8"><span class="val" id="zDepthV">8%</span></div>
+        <div class="field"><label>Row (several strips on one edge)</label><span class="stepper"><button id="layDn" aria-label="Row in">–</button><b id="layV">0</b><button id="layUp" aria-label="Row out">+</button></span></div>
+        <p class="muted">Applies to <b id="zCount">0</b> selected segments together.</p>
+      </div>
+      <p class="muted" id="zoneEmpty">Only LED segments have a zone; connections take no color.</p>
+    </div>
+  </section>
+</div>
+<details class="file">
+  <summary>Layout file · import and export</summary>
+  <div class="row"><label class="muted" for="layoutName">Name</label><input type="text" id="layoutName" maxlength="64" value="My layout" style="flex:1;min-width:160px"></div>
+  <p class="muted">The file holds the LED list the TV uses and the drawing, so importing it reopens the layout exactly. A plain LED list or a HyperHDR layout is rebuilt into segments.</p>
+  <textarea id="json" spellcheck="false" aria-label="Layout JSON"></textarea>
+  <div class="row end" style="padding-bottom:16px">
+    <button id="load" class="ghost">Import text</button><button id="import" class="ghost">Import file</button><input class="file-input" type="file" id="file" accept=".json,application/json">
+    <button id="download" class="ghost">Download JSON</button><button id="copy" class="ghost">Copy</button>
+  </div>
+</details>
+</main>
+<div class="footer"><div><span id="message" role="status" aria-live="polite">Loading layout…</span><span class="row"><button id="reload" class="ghost">Reload from TV</button><button id="apply" class="primary" disabled>Apply to TV</button></span></div></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),offline=location.protocol==='file:';
-let doc={schema:1,name:'My layout',leds:[]},selected=0,history=[],dirty=false,drawing=false,endpoints=[],drag=null,view='-140 -140 1280 860';
-const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),round=x=>Math.round(x*10000)/10000;
-function notice(text,error=false){$('message').textContent=text;$('message').className=error?'error':'';}
-function valid(input){
- const source=Array.isArray(input)?{leds:input}:input;
- if(!source||typeof source!=='object'||(source.schema!==undefined&&source.schema!==1)||!Array.isArray(source.leds)||source.leds.length<4||source.leds.length>490)throw Error('Use 4 to 490 LEDs, in a leds array or a HyperHDR list.');
- if(source.name!==undefined&&(typeof source.name!=='string'||source.name.length>64))throw Error('The name can be 64 characters at most.');
- const leds=source.leds.map((led,i)=>{const r={};if(!led||typeof led!=='object')throw Error('LED '+i+': invalid zone.');
-  for(const k of ['hmin','hmax','vmin','vmax']){let n=led[k];if(typeof n!=='number'||!Number.isFinite(n)||n<0||n>1)throw Error('LED '+i+': picture coordinates must be between 0 and 1.');r[k]=round(n);}
-  if(r.hmin>=r.hmax||r.vmin>=r.vmax)throw Error('LED '+i+': zone empty or too small.');
-  for(const k of ['x','y'])if(led[k]!==undefined){if(typeof led[k]!=='number'||!Number.isFinite(led[k])||led[k]<-2||led[k]>3)throw Error('LED '+i+': invalid physical position.');r[k]=round(led[k]);}return r;});
- return {schema:1,name:source.name||'My layout',leds};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),round=x=>Math.round(x*1e4)/1e4;
+// stage: TV rect inside a 1000x640 drawing; LED positions are TV-relative (0..1, beyond for furniture)
+const TX=212,TY=120,TW=576,TH=324,toPx=p=>({px:TX+p.x*TW,py:TY+p.y*TH}),fromPx=(px,py)=>({x:round((px-TX)/TW),y:round((py-TY)/TH)});
+// zones: the picture is 0..1000 x 0..562.5; uniform rail bands sit outside it, one per row
+const PW=1000,PH=562.5,RAILT=42,GN=1/24;
+let penKind='led',S,sel=null,zsel=new Set(),pen=false,snap=true,overlap=true,marquee=null,drag=null,zdrag=null,history=[],dirty=false,stageVB='0 0 1000 640',tvVB='-150 -100 1300 762';
+
+function notice(text,error){$('message').textContent=text;$('message').className=error?'error':'';}
+function frameTV(){
+  const TL={x:-.03,y:-.04},TR={x:1.03,y:-.04},BR={x:1.03,y:1.04},BL={x:-.03,y:1.04};
+  return {verts:[TL,TR,BR,BL,{x:-.03,y:-.03}],segs:[
+    {type:'led',leds:30,zEdge:'top',zFrom:0,zTo:1,zDepth:.08,zLayer:0},{type:'led',leds:18,zEdge:'right',zFrom:0,zTo:1,zDepth:.08,zLayer:0},
+    {type:'led',leds:30,zEdge:'bottom',zFrom:0,zTo:1,zDepth:.08,zLayer:0},{type:'led',leds:18,zEdge:'left',zFrom:0,zTo:1,zDepth:.08,zLayer:0}],reversed:false};
 }
-function remember(){history.push(JSON.stringify(doc));if(history.length>35)history.shift();dirty=true;$('undo').disabled=false;}
-function commit(next){const clean=valid(next);remember();doc=clean;selected=clamp(selected,0,doc.leds.length-1);render();notice('Local changes · not applied to the TV yet');}
-function point(led){return {x:led.x===undefined?(led.hmin+led.hmax)/2:led.x,y:led.y===undefined?(led.vmin+led.vmax)/2:led.y};}
-function color(i){return 'hsl('+Math.round(i/Math.max(1,doc.leds.length)*300+15)+' 85% 62%)';}
-function zone(x,y,edge,span,depth){
- if(edge==='auto'){const distances=[Math.abs(y),Math.abs(x-1),Math.abs(y-1),Math.abs(x)];edge=['top','right','bottom','left'][distances.indexOf(Math.min(...distances))];}
- const horizontal=edge==='top'||edge==='bottom',at=clamp(horizontal?x:y),size=clamp(span,.004,1),a=clamp(at-size/2,0,1-size),b=a+size;
- return {hmin:round(horizontal?a:edge==='left'?0:1-depth),hmax:round(horizontal?b:edge==='left'?depth:1),vmin:round(horizontal?(edge==='top'?0:1-depth):a),vmax:round(horizontal?(edge==='top'?depth:1):b),x:round(x),y:round(y)};
+function remember(){history.push(JSON.stringify(S));if(history.length>40)history.shift();$('undo').disabled=false;dirty=true;}
+function snapV(p){let x=p.x,y=p.y;if(snap){x=Math.round(x/GN)*GN;y=Math.round(y/GN)*GN;for(const e of[0,1]){if(Math.abs(p.x-e)<.035)x=e;if(Math.abs(p.y-e)<.035)y=e;}}return {x:round(x),y:round(y)};}
+function geoEdge(si){const a=S.verts[si],b=S.verts[si+1],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,d=[Math.abs(my),Math.abs(mx-1),Math.abs(my-1),Math.abs(mx)];return ['top','right','bottom','left'][d.indexOf(Math.min(...d))];}
+function ensureZone(seg,si){if(seg.type!=='led'||seg.zEdge)return;
+  const e=geoEdge(si),a=S.verts[si],b=S.verts[si+1],horiz=e==='top'||e==='bottom';
+  let f=clamp(horiz?Math.min(a.x,b.x):Math.min(a.y,b.y),0,1),t=clamp(horiz?Math.max(a.x,b.x):Math.max(a.y,b.y),0,1);
+  if(t-f<.12){const c=clamp((f+t)/2,.06,.94);f=c-.06;t=c+.06;}
+  seg.zEdge=e;seg.zFrom=round(f);seg.zTo=round(t);seg.zDepth=.08;if(seg.zLayer==null)seg.zLayer=0;}
+function normalize(){S.segs.forEach((s,i)=>{if(s.type==='led'){ensureZone(s,i);if(s.zLayer==null)s.zLayer=0;}});}
+// fit each canvas to its content so nothing is clipped; held steady while dragging
+function fitStage(){if(drag)return;const xs=[0,1],ys=[0,1];S.verts.forEach(v=>{xs.push(v.x);ys.push(v.y);});
+  const p0=toPx({x:Math.min(...xs),y:Math.min(...ys)}),p1=toPx({x:Math.max(...xs),y:Math.max(...ys)}),pad=72;
+  stageVB=[Math.round(p0.px-pad),Math.round(p0.py-pad),Math.round(p1.px-p0.px+2*pad),Math.round(p1.py-p0.py+2*pad)].join(' ');}
+function fitTV(){if(zdrag||marquee)return;let x0=0,y0=0,x1=PW,y1=PH;
+  S.segs.forEach((s,i)=>{if(s.type!=='led')return;ensureZone(s,i);const B=blockRect(s);x0=Math.min(x0,B.x);y0=Math.min(y0,B.y);x1=Math.max(x1,B.x+B.w);y1=Math.max(y1,B.y+B.h);});
+  tvVB=[Math.round(x0-64),Math.round(y0-64),Math.round(x1-x0+128),Math.round(y1-y0+128)].join(' ');}
+// global LED order: positions stay fixed, reversing only renumbers which end is LED 0
+function order(){const out=[],n=S.segs.length,seq=S.reversed?[...Array(n).keys()].reverse():[...Array(n).keys()];
+  for(const si of seq){const seg=S.segs[si];if(seg.type!=='led')continue;const a=S.verts[si],b=S.verts[si+1],k=seg.leds,ids=S.reversed?[...Array(k).keys()].reverse():[...Array(k).keys()];
+    for(const i of ids){const t=(i+.5)/k;out.push({si,i,k,x:round(a.x+(b.x-a.x)*t),y:round(a.y+(b.y-a.y)*t)});}}
+  return out;}
+const total=()=>S.segs.reduce((t,s)=>t+(s.type==='led'?s.leds:0),0);
+function countLabel(){const n=S.segs.filter(s=>s.type==='led').length,c=S.segs.length-n;return n+(n===1?' segment':' segments')+(c?' · '+c+(c===1?' connection':' connections'):'');}
+// the two LEDs a connection sits between, in strip numbering (-1 / total when it is at an end of the strip)
+function cableEnds(si){const t=total();let before=0;for(let i=0;i<si;i++)if(S.segs[i].type==='led')before+=S.segs[i].leds;
+  return S.reversed?[t-1-before,t-before]:[before-1,before];}
+function rangeOf(si){let lo=-1,hi=-1;order().forEach((p,gi)=>{if(p.si===si){if(lo<0)lo=gi;hi=gi;}});return[lo,hi];}
+function ledZoneRect(seg,i){const k=seg.leds,span=seg.zTo-seg.zFrom,c=seg.zFrom+(i+.5)/k*span,w=Math.max(.004,Math.abs(span)/k),d=seg.zDepth,e=seg.zEdge,horiz=e==='top'||e==='bottom',a=clamp(c-w/2,0,1),b=clamp(c+w/2,0,1);
+  return {hmin:round(horiz?a:(e==='left'?0:1-d)),hmax:round(horiz?b:(e==='left'?d:1)),vmin:round(horiz?(e==='top'?0:1-d):a),vmax:round(horiz?(e==='top'?d:1):b)};}
+function blockRect(seg){const e=seg.zEdge,f=seg.zFrom,t=seg.zTo,off=(seg.zLayer||0)*(RAILT+8),horiz=e==='top'||e==='bottom';
+  if(horiz)return {x:f*PW,y:e==='top'?(-off-RAILT):(PH+off),w:(t-f)*PW,h:RAILT,horiz:true,e};
+  return {x:e==='left'?(-off-RAILT):(PW+off),y:f*PH,w:RAILT,h:(t-f)*PH,horiz:false,e};}
+
+// SVG presentation attributes do not resolve var(), so read the tokens once per render
+let P={};
+function pal(){const g=getComputedStyle(document.documentElement),c=(n,d)=>(g.getPropertyValue(n).trim()||d);
+  P={tv:c('--tv','#0e2030'),tvline:c('--tv-line','#3a5870'),accent:c('--accent','#4ce0b2'),link:c('--link','#6a7f93'),sel:c('--sel','#ffcf5d'),panel:c('--panel','#131f2c'),border2:c('--border-2','#35526a'),grid:c('--grid','#16283a')};}
+const hue=(i,t)=>'hsl('+Math.round(i/Math.max(1,t)*300+18)+' 82% 62%)';
+function renderStage(){let h='';
+  if(snap){for(let gx=-.33;gx<=1.34;gx+=GN){const p=toPx({x:gx,y:0});h+='<line x1="'+p.px+'" y1="-400" x2="'+p.px+'" y2="1400" stroke="'+P.grid+'"/>';}
+    for(let gy=-.33;gy<=1.7;gy+=GN){const p=toPx({x:0,y:gy});h+='<line x1="-400" y1="'+p.py+'" x2="1400" y2="'+p.py+'" stroke="'+P.grid+'"/>';}}
+  h+='<rect x="'+TX+'" y="'+TY+'" width="'+TW+'" height="'+TH+'" rx="14" fill="'+P.tv+'" stroke="'+P.tvline+'" stroke-width="2"/><text x="'+(TX+TW/2)+'" y="'+(TY+TH/2+8)+'" text-anchor="middle" font-size="34" fill="'+P.tvline+'">TV</text>';
+  S.segs.forEach((seg,si)=>{const a=toPx(S.verts[si]),b=toPx(S.verts[si+1]),on=sel===si,xy='x1="'+a.px+'" y1="'+a.py+'" x2="'+b.px+'" y2="'+b.py+'"';
+    if(on)h+='<line '+xy+' stroke="'+P.sel+'" stroke-width="16" stroke-linecap="round" opacity=".2"/>';
+    h+=seg.type==='led'?'<line '+xy+' stroke="'+(on?P.sel:P.accent)+'" stroke-width="'+(on?6:4)+'" stroke-linecap="round"/>':'<line '+xy+' stroke="'+(on?P.sel:P.link)+'" stroke-width="'+(on?5:3)+'" stroke-linecap="round" stroke-dasharray="3 9"/>';
+    h+='<line '+xy+' data-seg="'+si+'" stroke="transparent" stroke-width="20" style="cursor:pointer"/>';});
+  const ord=order(),t=ord.length;
+  ord.forEach((p,i)=>{const q=toPx(p),focus=sel===null||p.si===sel;
+    h+='<circle cx="'+q.px+'" cy="'+q.py+'" r="'+(i===0?8:p.si===sel?6:5)+'" fill="'+(i===0?'#fff':hue(i,t))+'" stroke="'+(i===0?'#111':'rgba(0,0,0,.35)')+'" stroke-width="'+(i===0?3:1)+'" opacity="'+(focus?1:.22)+'" style="pointer-events:none"/>';});
+  S.verts.forEach((v,vi)=>{const q=toPx(v),ep=vi===0||vi===S.verts.length-1;h+='<circle data-vtx="'+vi+'" cx="'+q.px+'" cy="'+q.py+'" r="'+(ep?9:6)+'" fill="'+P.panel+'" stroke="'+(ep?P.sel:P.border2)+'" stroke-width="2" style="cursor:grab"/>';});
+  if(pen&&S.verts.length){const l=toPx(S.verts[S.verts.length-1]);h+='<circle cx="'+l.px+'" cy="'+l.py+'" r="13" fill="none" stroke="'+P.accent+'" stroke-width="2" stroke-dasharray="4 4"/>';}
+  $('stage').setAttribute('viewBox',stageVB);$('stage').innerHTML=h;}
+function renderTV(){
+  let h='<defs><linearGradient id="pic" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d1575b"/><stop offset=".4" stop-color="#c39a44"/><stop offset=".7" stop-color="#2b9b92"/><stop offset="1" stop-color="#3a5aa0"/></linearGradient></defs>'+
+    '<rect width="'+PW+'" height="'+PH+'" fill="url(#pic)"/><rect x="90" y="86" width="820" height="390" rx="14" fill="#0b1826" fill-opacity=".82"/><text x="500" y="282" text-anchor="middle" font-size="24" fill="#9db2c0">Picture</text>';
+  // overlap view: the pixels each segment really samples; where segments overlap the fill piles up
+  if(overlap)S.segs.forEach((s,si)=>{if(s.type!=='led')return;ensureZone(s,si);const sc=zsel.has(si)||sel===si;
+    for(let j=0;j<s.leds;j++){const r=ledZoneRect(s,j);h+='<rect x="'+r.hmin*PW+'" y="'+r.vmin*PH+'" width="'+(r.hmax-r.hmin)*PW+'" height="'+(r.vmax-r.vmin)*PH+'" fill="'+(sc?P.sel:P.accent)+'" fill-opacity="'+(sc?.36:.16)+'"/>';}});
+  S.segs.forEach((seg,si)=>{if(seg.type!=='led')return;ensureZone(seg,si);
+    const B=blockRect(seg),selected=zsel.has(si),focus=sel===si,col=selected||focus?P.sel:P.accent,k=seg.leds;
+    for(let i=0;i<k;i++){const u0=i/k,u1=(i+1)/k,r=B.horiz?[B.x+u0*B.w,B.y,(u1-u0)*B.w,B.h]:[B.x,B.y+u0*B.h,B.w,(u1-u0)*B.h];
+      h+='<rect x="'+r[0]+'" y="'+r[1]+'" width="'+r[2]+'" height="'+r[3]+'" fill="'+col+'" fill-opacity="'+(selected?.3:.14)+'" stroke="'+col+'" stroke-width=".5"/>';}
+    h+='<rect x="'+B.x+'" y="'+B.y+'" width="'+B.w+'" height="'+B.h+'" fill="transparent" stroke="'+col+'" stroke-width="'+(selected||focus?3:1.5)+'" rx="4" data-zone="'+si+'" style="cursor:grab"/>';
+    if((seg.zLayer||0)>0){const m=(seg.zFrom+seg.zTo)/2,l=B.e==='bottom'?[m*PW,PH,m*PW,B.y]:B.e==='top'?[m*PW,0,m*PW,B.y+B.h]:B.e==='left'?[0,m*PH,B.x+B.w,m*PH]:[PW,m*PH,B.x,m*PH];
+      h+='<line x1="'+l[0]+'" y1="'+l[1]+'" x2="'+l[2]+'" y2="'+l[3]+'" stroke="'+col+'" stroke-dasharray="4 4" opacity=".6"/>';}
+    h+='<text x="'+clamp(B.x+B.w/2,-120,PW+120)+'" y="'+(B.y+B.h/2+5)+'" text-anchor="middle" font-size="15" font-weight="700" fill="'+(selected||focus?P.sel:'#eaf0f7')+'">'+k+'</text>';
+    if(selected&&zsel.size===1){const ends=B.horiz?[[B.x,B.y+B.h/2],[B.x+B.w,B.y+B.h/2]]:[[B.x+B.w/2,B.y],[B.x+B.w/2,B.y+B.h]];
+      ['from','to'].forEach((w,n)=>{h+='<circle data-handle="'+w+'" data-zone="'+si+'" cx="'+ends[n][0]+'" cy="'+ends[n][1]+'" r="7" fill="'+P.sel+'" stroke="#111" style="cursor:'+(B.horiz?'ew-resize':'ns-resize')+'"/>';});}});
+  if(marquee)h+='<rect x="'+Math.min(marquee.x0,marquee.x1)+'" y="'+Math.min(marquee.y0,marquee.y1)+'" width="'+Math.abs(marquee.x1-marquee.x0)+'" height="'+Math.abs(marquee.y1-marquee.y0)+'" fill="'+P.sel+'" fill-opacity=".1" stroke="'+P.sel+'" stroke-dasharray="5 4"/>';
+  $('tv').setAttribute('viewBox',tvVB);$('tv').innerHTML=h;}
+function renderSeg(){const seg=sel===null?null:S.segs[sel];
+  $('segInsp').classList.toggle('off',!seg);$('segEdit').hidden=!seg;$('segEmpty').hidden=!!seg;
+  if(!seg){$('segTitle').textContent='No segment selected';$('segTag').textContent='—';$('segTag').className='tag link';return;}
+  const led=seg.type==='led';$('segTitle').textContent='Segment '+(sel+1);$('segTag').textContent=led?'LED':'cable';$('segTag').className='tag '+(led?'led':'link');
+  $('typeLed').classList.toggle('on',led);$('typeLink').classList.toggle('on',!led);$('ledsField').hidden=!led;$('linkNote').hidden=led;$('segLeds').value=seg.leds;
+  if(led){const r=rangeOf(sel);$('segRange').hidden=r[0]<0;$('segRange').textContent=r[0]<0?'':'LEDs '+r[0]+'–'+r[1]+' on the strip';return;}
+  const [a,b]=cableEnds(sel),t=total();$('segRange').hidden=false;
+  $('segRange').textContent=a<0?'No LEDs · cable before LED 0':b>t-1?'No LEDs · cable after LED '+(t-1):'No LEDs · the strip continues from LED '+a+' to LED '+b;}
+function renderZone(){[...zsel].forEach(i=>{if(!S.segs[i]||S.segs[i].type!=='led')zsel.delete(i);});
+  $('zCount').textContent=zsel.size;$('zoneInsp').classList.toggle('off',!zsel.size);$('zoneEdit').hidden=!zsel.size;$('zoneEmpty').hidden=!!zsel.size;
+  if(!zsel.size){$('zoneTitle').textContent='No block selected';return;}
+  const f=S.segs[[...zsel][0]];$('zoneTitle').textContent=zsel.size===1?'Segment '+([...zsel][0]+1):zsel.size+' segments';
+  $('zEdge').value=f.zEdge;$('zDepth').value=Math.round(f.zDepth*100);$('zDepthV').textContent=$('zDepth').value+'%';$('layV').textContent=f.zLayer||0;}
+// `leds` is what the TV uses; `studio` is this drawing, so opening the file again restores it exactly
+function exportDoc(){const leds=order().map(p=>{const r=ledZoneRect(S.segs[p.si],p.i);return {hmin:r.hmin,hmax:r.hmax,vmin:r.vmin,vmax:r.vmax,x:p.x,y:p.y};});
+  return {schema:1,name:($('layoutName').value||'My layout').slice(0,64),leds,studio:{v:1,verts:S.verts,segs:S.segs,reversed:S.reversed}};}
+function problem(){const t=total();return t<4?'Add at least 4 LEDs (now '+t+').':t>490?'One WLED packet carries at most 490 LEDs (now '+t+').':'';}
+function render(){pal();normalize();fitStage();fitTV();$('total').textContent=total();$('segcount').textContent=countLabel();
+  renderStage();renderTV();renderSeg();renderZone();
+  if(document.activeElement!==$('json'))$('json').value=JSON.stringify(exportDoc(),null,2);
+  $('warn').textContent=problem();$('pen').classList.toggle('on',pen);$('penKind').textContent=penKind==='led'?'Draws: LEDs':'Draws: cable';$('penKind').classList.toggle('on',penKind==='link');$('snap').classList.toggle('on',snap);$('overlap').classList.toggle('on',overlap);
+  $('apply').disabled=offline||!!problem();$('live').disabled=offline;queuePreview();}
+function edited(){render();notice('Local changes · not applied to the TV yet');}
+
+// ---- live preview on the real strip: off on entry; while on, the TV shows this drawing instead of the picture.
+// One colour, everything else off: nothing selected lights every LED drawn so far, a segment lights only its
+// LEDs, a connection lights the two LEDs it sits between. ----
+let live=false,liveTimer=null,liveSent=0,liveQueued=false,liveLights=true;
+const LIVE_ON='ffc800',LIVE_OFF='000000';
+function previewHex(){const ord=order().slice(0,490),seg=sel===null?null:S.segs[sel],ends=seg&&seg.type!=='led'?cableEnds(sel):null;
+  return ord.map((p,gi)=>(!seg||(ends?gi===ends[0]||gi===ends[1]:p.si===sel))?LIVE_ON:LIVE_OFF).join('');}
+async function sendPreview(){liveQueued=false;liveSent=Date.now();if(!live)return;
+  try{const r=await api('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rgb:previewHex()||'000000'})});
+    if(!r.lights&&liveLights)notice('Preview sent, but the lights are off or no WLED controller is set: switch them on in the settings.',true);liveLights=r.lights;}
+  catch(e){notice('Live preview: '+e.message,true);}}
+function queuePreview(){if(!live||liveQueued)return;liveQueued=true;setTimeout(sendPreview,Math.max(0,90-(Date.now()-liveSent)));}
+function stopPreview(leaving){if(liveTimer)clearInterval(liveTimer);liveTimer=null;
+  try{fetch('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"off":true}',keepalive:!!leaving});}catch(e){}}
+$('live').onclick=()=>{live=!live;$('live').classList.toggle('on',live);
+  if(live){liveLights=true;queuePreview();liveTimer=setInterval(sendPreview,1000);notice('Live on strip · the selected segment lights up, nothing selected lights every LED; nothing is saved until Apply to TV');}
+  else{stopPreview(false);notice('Live preview off · the strip is back to the picture');}};
+addEventListener('pagehide',()=>{if(live)stopPreview(true);});
+
+// ---- import: the exact drawing when the file carries one, otherwise rebuild segments from the LED list ----
+function studioFrom(st){try{
+  if(!st||st.v!==1||!Array.isArray(st.verts)||!Array.isArray(st.segs)||st.verts.length<2||st.segs.length!==st.verts.length-1)return null;
+  const num=v=>typeof v==='number'&&isFinite(v),E=['top','right','bottom','left'];
+  const verts=st.verts.map(p=>{if(!p||!num(p.x)||!num(p.y))throw 0;return {x:round(clamp(p.x,-2,3)),y:round(clamp(p.y,-2,3))};});
+  const segs=st.segs.map(s=>{if(s&&s.type==='link')return {type:'link',leds:0};if(!s||s.type!=='led')throw 0;
+    const o={type:'led',leds:clamp(Math.round(+s.leds)||1,1,490),zLayer:clamp(Math.round(+s.zLayer)||0,0,3)};
+    if(E.includes(s.zEdge)&&num(s.zFrom)&&num(s.zTo)&&num(s.zDepth)&&s.zTo>s.zFrom){o.zEdge=s.zEdge;o.zFrom=round(clamp(s.zFrom,0,1));o.zTo=round(clamp(s.zTo,0,1));o.zDepth=round(clamp(s.zDepth,.02,.5));}
+    return o;});
+  return {verts,segs,reversed:!!st.reversed};}catch(e){return null;}
 }
-function segment(a,b,n,edge,depth){return Array.from({length:n},(_,i)=>{const t=(i+.5)/n,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;
- const horizontal=edge==='top'||edge==='bottom'||(edge==='auto'&&Math.abs(b.x-a.x)>=Math.abs(b.y-a.y));return zone(x,y,edge,Math.max(.008,Math.abs(horizontal?b.x-a.x:b.y-a.y)/n),depth);});}
-function frame(counts,corner=0,reverse=false,depth=.08){
- if(counts.some(n=>!Number.isInteger(n)||n<0||n>490)||counts.reduce((a,b)=>a+b,0)<4||counts.reduce((a,b)=>a+b,0)>490)throw Error('The sides must add up to 4–490 LEDs.');
- let leds=[],points=[[{x:0,y:-.035},{x:1,y:-.035}],[{x:1.02,y:0},{x:1.02,y:1}],[{x:1,y:1.035},{x:0,y:1.035}],[{x:-.02,y:1},{x:-.02,y:0}]];
- for(let e=0;e<4;e++)leds.push(...segment(points[e][0],points[e][1],counts[e],['top','right','bottom','left'][e],depth));
- let start=counts.slice(0,corner).reduce((a,b)=>a+b,0)%leds.length;leds=leds.slice(start).concat(leds.slice(0,start));if(reverse)leds=[leds[0],...leds.slice(1).reverse()];return {schema:1,name:$('layoutName').value||'TV frame',leds};
+// which TV edge each LED samples: the side its zone rectangle is nearest to. A corner zone touches two
+// edges; it stays on the edge its neighbour runs along, so a corner never splits a run.
+function edgesOf(leds){const E=['top','bottom','left','right'];
+  const ties=leds.map(l=>{const d={top:l.vmin,bottom:1-l.vmax,left:l.hmin,right:1-l.hmax},m=Math.min(d.top,d.bottom,d.left,d.right);return E.filter(e=>d[e]-m<1e-6);});
+  const out=ties.map(t=>t.length===1?t[0]:null);
+  for(let i=0;i<out.length;i++)if(!out[i]){const prev=i?out[i-1]:null,next=ties.slice(i+1).find(t=>t.length===1);
+    out[i]=ties[i].includes(prev)?prev:next&&ties[i].includes(next[0])?next[0]:ties[i][0];}
+  return out;}
+// row from the segment's nearest approach to the TV: a stand side reaching down keeps the front's row
+function autoLayer(a,b){const o=p=>Math.max(0,p.y-1,-p.y,p.x-1,-p.x);return clamp(Math.round((Math.min(o(a),o(b))-.05)/.15),0,3);}
+function zoneFromSlice(s,edge){const vmin=Math.min(...s.map(l=>l.vmin)),vmax=Math.max(...s.map(l=>l.vmax)),hmin=Math.min(...s.map(l=>l.hmin)),hmax=Math.max(...s.map(l=>l.hmax));
+  if(edge==='top'||edge==='bottom'){const th=s.reduce((a,l)=>a+(l.vmax-l.vmin),0)/s.length;return {edge,from:round(clamp(hmin,0,1)),to:round(clamp(Math.max(hmax,hmin+.03),0,1)),depth:round(clamp(th,.02,.5))};}
+  const th=s.reduce((a,l)=>a+(l.hmax-l.hmin),0)/s.length;return {edge,from:round(clamp(vmin,0,1)),to:round(clamp(Math.max(vmax,vmin+.03),0,1)),depth:round(clamp(th,.02,.5))};}
+function fromLeds(leds){
+  // Group consecutive LEDs by the edge their zone samples, split at big physical gaps (connections).
+  // Without a mounted position (TV frame, HyperHDR) a LED is placed just outside the edge it samples.
+  const edges=edgesOf(leds),out={top:[0,-.04],bottom:[0,1.04],left:[-.04,0],right:[1.04,0]},mounted=l=>typeof l.x==='number'&&typeof l.y==='number';
+  const pts=leds.map((l,i)=>{if(mounted(l))return {x:l.x,y:l.y};const cx=(l.hmin+l.hmax)/2,cy=(l.vmin+l.vmax)/2,e=edges[i];
+    return e==='top'||e==='bottom'?{x:cx,y:out[e][1]}:{x:out[e][0],y:cy};});
+  // connections come only from real mounted positions: invented positions have no gaps to find
+  const n=pts.length,JUMP=.14,cut=new Array(n).fill(0);
+  for(let i=1;i<n;i++){if(mounted(leds[i])&&mounted(leds[i-1])&&Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y)>JUMP)cut[i]=2;else if(edges[i]!==edges[i-1])cut[i]=1;}
+  const raw=[];let s=0;for(let i=1;i<=n;i++)if(i===n||cut[i]){raw.push([s,i]);s=i;}
+  // a corner LED ties two edges and would become a 1-LED stray: absorb it, never across a connection
+  const runs=[];for(const r of raw){if(runs.length&&r[1]-r[0]<2&&cut[r[0]]!==2)runs[runs.length-1][1]=r[1];else runs.push([r[0],r[1]]);}
+  const verts=[],segs=[];let prev=null;
+  runs.forEach(([a,b])=>{const z=zoneFromSlice(leds.slice(a,b),edges[a]);let first=pts[a],last=pts[b-1];
+    if(!mounted(leds[a])||!mounted(leds[b-1])){   // invented positions: run along the outside of the edge, end to end, so corners meet
+      const e=z.edge,h=e==='top'||e==='bottom',along=l=>h?(l.hmin+l.hmax)/2:(l.vmin+l.vmax)/2,fwd=along(leds[b-1])>=along(leds[a]),at=u=>h?{x:u,y:out[e][1]}:{x:out[e][0],y:u};
+      first=at(fwd?z.from:z.to);last=at(fwd?z.to:z.from);}
+    if(prev&&Math.hypot(prev.x-first.x,prev.y-first.y)>JUMP){verts.push({x:round(first.x),y:round(first.y)});segs.push({type:'link',leds:0});}
+    if(!verts.length)verts.push({x:round(first.x),y:round(first.y)});
+    verts.push({x:round(last.x),y:round(last.y)});segs.push({type:'led',leds:b-a,zEdge:z.edge,zFrom:z.from,zTo:z.to,zDepth:z.depth,zLayer:autoLayer(first,last)});prev=last;});
+  return {verts,segs,reversed:false};
 }
-function render(){
- $('total').textContent=doc.leds.length;$('layoutName').value=doc.name;$('selected').max=Math.max(0,doc.leds.length-1);$('selected').value=selected;
- let lines=doc.leds.map(led=>{const p=point(led);return (p.x*1000)+','+(p.y*562.5);}).join(' ');
- let phys='<rect x="0" y="0" width="1000" height="562.5" rx="20" fill="#152838" stroke="#3c5b71" stroke-width="3"/><text x="500" y="280" fill="#7f9caf" text-anchor="middle" font-size="44">TV</text><text x="500" y="325" fill="#6a879b" text-anchor="middle" font-size="22">front view</text><polyline points="'+lines+'" fill="none" stroke="#466579" stroke-width="3"/>';
- let samples='<defs><linearGradient id="picture"><stop stop-color="#d34f55"/><stop offset=".4" stop-color="#c59b40"/><stop offset=".7" stop-color="#289b93"/><stop offset="1" stop-color="#395a9d"/></linearGradient></defs><rect width="1000" height="562.5" fill="url(#picture)"/><rect x="80" y="80" width="840" height="402.5" rx="18" fill="#101f2c" fill-opacity=".88"/><text x="500" y="285" text-anchor="middle" font-size="29" fill="#9db2c0">Picture zones</text>';
- doc.leds.forEach((led,i)=>{const p=point(led),c=color(i),active=i===selected;
-  phys+='<circle data-led="'+i+'" cx="'+p.x*1000+'" cy="'+p.y*562.5+'" r="'+(active?10:6)+'" fill="'+c+'" stroke="'+(i===0||active?'white':'#10202b')+'" stroke-width="'+(i===0?5:2)+'"/>';
-  if($('numbers').checked||active||i===0)phys+='<text x="'+p.x*1000+'" y="'+(p.y*562.5-16)+'" text-anchor="middle" font-size="19" fill="white">'+i+'</text>';
-  if(!active)samples+=rect(led,i,c,false);
- });
- if(doc.leds[selected])samples+=rect(doc.leds[selected],selected,'white',true);
- if(endpoints.length)phys+='<circle cx="'+endpoints[0].x*1000+'" cy="'+endpoints[0].y*562.5+'" r="10" fill="white"/>';
- if(endpoints.length===2)phys+='<line x1="'+endpoints[0].x*1000+'" y1="'+endpoints[0].y*562.5+'" x2="'+endpoints[1].x*1000+'" y2="'+endpoints[1].y*562.5+'" stroke="#4ce0b2" stroke-width="5" stroke-dasharray="10 6"/>';
- $('physical').innerHTML=phys;$('physical').setAttribute('viewBox',view);$('samples').innerHTML=samples;
- const led=doc.leds[selected];for(const k of ['hmin','hmax','vmin','vmax'])$(k).value=led?round(led[k]*100):'';
- if(led){const p=point(led);$('physicalX').value=round(p.x*100);$('physicalY').value=round(p.y*100);}
- $('apply').disabled=offline||doc.leds.length<4;$('undo').disabled=!history.length;
-}
-function rect(l,i,c,active){return '<rect class="zone" data-led="'+i+'" x="'+l.hmin*1000+'" y="'+l.vmin*562.5+'" width="'+(l.hmax-l.hmin)*1000+'" height="'+(l.vmax-l.vmin)*562.5+'" fill="'+c+'" fill-opacity="'+(active?.14:.05)+'" stroke="'+c+'" stroke-width="'+(active?4:1)+'"/>';}
-function fit(){const points=doc.leds.map(point).concat([{x:0,y:0},{x:1,y:1}]);let x=Math.min(...points.map(p=>p.x))*1000-100,y=Math.min(...points.map(p=>p.y))*562.5-100;
- let w=Math.max(...points.map(p=>p.x))*1000+100-x,h=Math.max(...points.map(p=>p.y))*562.5+100-y;view=[x,y,w,h].join(' ');render();}
-function coords(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const t=p.matrixTransform(svg.getScreenCTM().inverse());return {x:t.x/1000,y:t.y/562.5};}
-for(const id of ['physical','samples']){
- const svg=$(id);
- svg.addEventListener('pointerdown',e=>{
-  const p=coords(svg,e);
-  if(id==='physical'&&drawing){endpoints.push({x:round(clamp(p.x,-2,3)),y:round(clamp(p.y,-2,3))});if(endpoints.length===2){drawing=false;$('segmentBox').classList.remove('hidden');$('tip').textContent='Set how many LEDs the segment has, then add it.';}else $('tip').textContent='Now click where the segment ends, following the cable direction.';render();return;}
-  const target=e.target.closest('[data-led]');if(!target)return;selected=Number(target.dataset.led);drag={id,start:p,led:{...doc.leds[selected]},saved:false};svg.setPointerCapture(e.pointerId);render();
- });
- svg.addEventListener('pointermove',e=>{if(!drag||drag.id!==id)return;const p=coords(svg,e),dx=p.x-drag.start.x,dy=p.y-drag.start.y,l=drag.led;if(!drag.saved){if(Math.abs(dx)+Math.abs(dy)<.001)return;remember();drag.saved=true;}
-  if(id==='physical'){const q=point(l);doc.leds[selected]={...l,x:round(clamp(q.x+dx,-2,3)),y:round(clamp(q.y+dy,-2,3))};}
-  else{const w=l.hmax-l.hmin,h=l.vmax-l.vmin,x=clamp(l.hmin+dx,0,1-w),y=clamp(l.vmin+dy,0,1-h);doc.leds[selected]={...l,hmin:round(x),hmax:round(x+w),vmin:round(y),vmax:round(y+h)};}
-  render();notice('Local changes · not applied to the TV yet');
- });
- svg.addEventListener('pointerup',()=>{drag=null;});svg.addEventListener('pointercancel',()=>{drag=null;});
-}
-function act(fn){try{fn();}catch(e){notice(e.message,true);}}
-function modify(fn){const before=selected;try{const next=JSON.parse(JSON.stringify(doc));fn(next);commit(next);}catch(e){selected=before;render();notice(e.message,true);}}
-$('generate').onclick=()=>act(()=>{commit(frame(['top','right','bottom','left'].map(k=>Number($(k).value)),Number($('corner').value),$('direction').value==='ccw',clamp(Number($('depth').value)/100,.01,.4)));selected=0;fit();$('wizard').open=false;});
-$('numbers').onchange=render;$('fit').onclick=fit;
-$('layoutName').onchange=()=>modify(d=>{d.name=$('layoutName').value;});
-$('selected').onchange=()=>{selected=clamp(Number($('selected').value)||0,0,doc.leds.length-1);render();};
-$('previous').onclick=()=>{selected=(selected+doc.leds.length-1)%doc.leds.length;render();};$('next').onclick=()=>{selected=(selected+1)%doc.leds.length;render();};
-for(const k of ['hmin','hmax','vmin','vmax'])$(k).onchange=()=>modify(d=>{d.leds[selected][k]=Number($(k).value)/100;});
-for(const [id,key] of [['physicalX','x'],['physicalY','y']])$(id).onchange=()=>modify(d=>{d.leds[selected][key]=Number($(id).value)/100;});
-$('first').onclick=()=>modify(d=>{d.leds=d.leds.slice(selected).concat(d.leds.slice(0,selected));selected=0;});
-$('reverse').onclick=()=>modify(d=>{d.leds=[d.leds[0],...d.leds.slice(1).reverse()];selected=selected===0?0:d.leds.length-selected;});
-$('duplicate').onclick=()=>modify(d=>{d.leds.splice(selected+1,0,{...d.leds[selected]});selected++;});
-$('delete').onclick=()=>modify(d=>{d.leds.splice(selected,1);});
-for(const [id,delta] of [['up',-1],['down',1]])$(id).onclick=()=>modify(d=>{const to=selected+delta;if(to<0||to>=d.leds.length)return;[d.leds[selected],d.leds[to]]=[d.leds[to],d.leds[selected]];selected=to;});
-$('undo').onclick=()=>{if(!history.length)return;doc=JSON.parse(history.pop());selected=clamp(selected,0,doc.leds.length-1);dirty=true;render();notice('Change undone · not applied to the TV yet');};
-function cancelSegment(){drawing=false;endpoints=[];$('segmentBox').classList.add('hidden');$('tip').textContent='Select an LED to see its color zone on the right.';render();}
-$('addSegment').onclick=()=>{cancelSegment();drawing=true;$('tip').textContent='Click where the segment starts, then where it ends, following the cable direction.';};
-$('cancelSegment').onclick=cancelSegment;
-$('confirmSegment').onclick=()=>act(()=>{const n=Number($('segmentCount').value);if(!Number.isInteger(n)||n<1||n+doc.leds.length>490)throw Error('The total cannot exceed 490 LEDs.');
- const next={...doc,leds:doc.leds.concat(segment(endpoints[0],endpoints[1],n,$('segmentEdge').value,clamp(Number($('depth').value)/100,.01,.4)))};const first=doc.leds.length;commit(next);selected=first;cancelSegment();fit();});
-$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>131072)throw Error('File too large: 128 KB at most.');commit(JSON.parse(await file.text()));cancelSegment();fit();notice('File imported · check order and zones, then apply to the TV');}catch(error){notice(error.message,true);}finally{e.target.value='';}};
-$('export').onclick=()=>act(()=>{const data=valid(doc),blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tizenhalo-layout.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);notice('JSON exported · keep the file as a backup');});
+function checkLeds(list){
+  if(!Array.isArray(list)||list.length<4||list.length>490)throw Error('Use 4 to 490 LEDs, in a leds array or a HyperHDR list.');
+  list.forEach((l,i)=>{if(!l||typeof l!=='object')throw Error('LED '+i+': invalid zone.');
+    for(const k of ['hmin','hmax','vmin','vmax'])if(typeof l[k]!=='number'||!isFinite(l[k])||l[k]<0||l[k]>1)throw Error('LED '+i+': picture coordinates must be between 0 and 1.');
+    if(l.hmin>=l.hmax||l.vmin>=l.vmax)throw Error('LED '+i+': zone empty or too small.');});}
+// adopt a layout document: returns how it was read ('exact' drawing or 'rebuilt' from the LED list)
+function adopt(doc){
+  if(!doc||typeof doc!=='object'||(doc.schema!==undefined&&doc.schema!==1))throw Error('Unsupported layout file.');
+  const leds=Array.isArray(doc)?doc:doc.leds,st=doc.studio?studioFrom(doc.studio):null,count=st?st.segs.reduce((a,s)=>a+(s.type==='led'?s.leds:0),0):-1;
+  if(typeof doc.name==='string')$('layoutName').value=doc.name.slice(0,64);
+  if(st&&(!Array.isArray(leds)||leds.length===count)){S=st;return 'exact';}
+  checkLeds(leds);S=fromLeds(leds);return 'rebuilt';}
+function take(doc,what){history=[];$('undo').disabled=true;sel=null;zsel.clear();pen=false;const how=adopt(doc);render();
+  notice(how==='exact'?what+' · drawing restored exactly':doc.name==='TV frame'?what+' · standard frame, ready to edit':what+' · rebuilt from the LED list, check edges and rows');return how;}
+
+// ---- strip drawing ----
+function pt(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+// the TV accepts mounted positions between -2 and 3; keep drawn points well inside that
+const here=t=>{const p=snapV(fromPx(t.x,t.y));return {x:clamp(p.x,-1.5,2.5),y:clamp(p.y,-1.5,2.5)};};
+$('stage').addEventListener('pointerdown',e=>{const svg=$('stage'),t=pt(svg,e),vx=e.target.closest('[data-vtx]');
+  if(vx){drag={vi:+vx.dataset.vtx,moved:false};svg.setPointerCapture(e.pointerId);return;}   // an existing point is always moved, pen or not
+  if(pen){remember();S.verts.push(here(t));
+    if(S.verts.length>=2)S.segs.push(penKind==='link'?{type:'link',leds:0}:{type:'led',leds:20,zLayer:autoLayer(S.verts[S.verts.length-2],S.verts[S.verts.length-1])});
+    sel=S.segs.length?S.segs.length-1:null;zsel=new Set(sel!==null&&S.segs[sel].type==='led'?[sel]:[]);$('hint').textContent='Point added. Keep going, or double-click / press Pen to finish.';$('hint').className='hint live';edited();return;}
+  const hit=e.target.closest('[data-seg]');if(hit){sel=+hit.dataset.seg;zsel=new Set(S.segs[sel].type==='led'?[sel]:[]);render();}});
+$('stage').addEventListener('pointermove',e=>{if(!drag)return;const v=here(pt($('stage'),e));if(!drag.moved){remember();drag.moved=true;}S.verts[drag.vi]=v;edited();});
+$('stage').addEventListener('pointerup',()=>{if(drag){drag=null;render();}});$('stage').addEventListener('pointercancel',()=>{drag=null;});
+$('stage').addEventListener('dblclick',()=>{if(pen){pen=false;$('hint').textContent='Path finished.';$('hint').className='hint';render();}});
+
+// ---- picture zones: select, move along the rail (and across rows), resize, box-select ----
+// moves use the TOTAL offset since the grab: per-event deltas are smaller than half a grid step and snapping swallowed them
+function dragMove(orig,dxu,dyu){orig.forEach(o=>{const s=S.segs[o.j];if(!s)return;const e=s.zEdge,horiz=e==='top'||e==='bottom',w=o.t-o.f;
+  let f=clamp(o.f+(horiz?dxu/PW:dyu/PH),0,1-w);if(snap)f=clamp(Math.round(f/GN)*GN,0,1-w);s.zFrom=round(f);s.zTo=round(f+w);
+  const out=e==='bottom'?dyu:e==='top'?-dyu:e==='right'?dxu:-dxu;s.zLayer=clamp(o.L+Math.round(out/(RAILT+8)),0,3);});}
+$('tv').addEventListener('pointerdown',e=>{const svg=$('tv'),t=pt(svg,e),hnd=e.target.closest('[data-handle]'),blk=e.target.closest('[data-zone]');
+  if(hnd){zdrag={mode:'resize',which:hnd.dataset.handle,i:+hnd.dataset.zone};remember();svg.setPointerCapture(e.pointerId);return;}
+  if(blk){const i=+blk.dataset.zone;if(e.shiftKey){zsel.has(i)?zsel.delete(i):zsel.add(i);}else if(!zsel.has(i))zsel=new Set([i]);
+    sel=i;zdrag={mode:'move',x0:t.x,y0:t.y,orig:[...zsel].map(j=>({j,f:S.segs[j].zFrom,t:S.segs[j].zTo,L:S.segs[j].zLayer||0}))};remember();svg.setPointerCapture(e.pointerId);render();return;}
+  marquee={x0:t.x,y0:t.y,x1:t.x,y1:t.y};if(!e.shiftKey)zsel.clear();svg.setPointerCapture(e.pointerId);renderTV();});
+$('tv').addEventListener('pointermove',e=>{const t=pt($('tv'),e);
+  if(zdrag&&zdrag.mode==='move'){dragMove(zdrag.orig,t.x-zdrag.x0,t.y-zdrag.y0);edited();return;}
+  if(zdrag&&zdrag.mode==='resize'){const s=S.segs[zdrag.i],horiz=s.zEdge==='top'||s.zEdge==='bottom';let v=clamp(horiz?t.x/PW:t.y/PH,0,1);if(snap)v=Math.round(v/GN)*GN;
+    if(zdrag.which==='from')s.zFrom=round(Math.min(v,s.zTo-.03));else s.zTo=round(Math.max(v,s.zFrom+.03));edited();return;}
+  if(marquee){marquee.x1=t.x;marquee.y1=t.y;renderTV();}});
+$('tv').addEventListener('pointerup',()=>{if(zdrag){zdrag=null;render();return;}if(!marquee)return;
+  const x0=Math.min(marquee.x0,marquee.x1),x1=Math.max(marquee.x0,marquee.x1),y0=Math.min(marquee.y0,marquee.y1),y1=Math.max(marquee.y0,marquee.y1);
+  if(x1-x0>14||y1-y0>14)S.segs.forEach((s,i)=>{if(s.type!=='led')return;const B=blockRect(s);if(B.x<x1&&B.x+B.w>x0&&B.y<y1&&B.y+B.h>y0)zsel.add(i);});
+  marquee=null;render();});
+
+// ---- toolbar and inspectors ----
+$('pen').onclick=()=>{pen=!pen;$('hint').textContent=pen?'Click where the strip starts, then each point along the cable. Double-click or press Pen to finish.':'Use Pen to draw, or start from a TV frame.';$('hint').className='hint'+(pen?' live':'');render();};
+$('penKind').onclick=()=>{penKind=penKind==='led'?'link':'led';render();};
+$('snap').onclick=()=>{snap=!snap;render();};
+$('overlap').onclick=()=>{overlap=!overlap;render();};
+$('frame').onclick=()=>{remember();S=frameTV();sel=0;zsel=new Set([0]);pen=false;edited();};
+$('reverse').onclick=()=>{remember();S.reversed=!S.reversed;edited();};
+$('clear').onclick=()=>{remember();S={verts:[],segs:[],reversed:false};sel=null;zsel.clear();edited();};
+$('undo').onclick=()=>{if(!history.length)return;S=JSON.parse(history.pop());sel=null;zsel.clear();$('undo').disabled=!history.length;edited();};
+$('typeLed').onclick=()=>{if(sel===null)return;remember();const s=S.segs[sel];s.type='led';s.leds=s.prevLeds||s.leds||20;delete s.prevLeds;delete s.zEdge;zsel=new Set([sel]);edited();};
+$('typeLink').onclick=()=>{if(sel===null)return;remember();const s=S.segs[sel];if(s.type==='led')s.prevLeds=s.leds;s.type='link';s.leds=0;zsel.delete(sel);edited();};
+$('segLeds').onchange=()=>{if(sel===null)return;remember();S.segs[sel].leds=clamp(Math.round(+$('segLeds').value)||1,1,490);edited();};
+$('segStart').onclick=()=>{if(sel===null)return;remember();S.reversed=sel>=S.segs.length/2;edited();};
+$('segDelete').onclick=()=>{if(sel===null)return;remember();S.verts.splice(sel+1,1);S.segs.splice(sel,1);sel=S.segs.length?clamp(sel,0,S.segs.length-1):null;zsel.clear();edited();};
+$('selAll').onclick=()=>{zsel=new Set(S.segs.map((s,i)=>i).filter(i=>S.segs[i].type==='led'));render();};
+$('selNone').onclick=()=>{zsel.clear();render();};
+$('zEdge').onchange=()=>{remember();zsel.forEach(i=>S.segs[i].zEdge=$('zEdge').value);edited();};
+$('zDepth').oninput=()=>{$('zDepthV').textContent=$('zDepth').value+'%';zsel.forEach(i=>S.segs[i].zDepth=+$('zDepth').value/100);renderTV();};
+$('zDepth').onchange=()=>{remember();edited();};
+$('layUp').onclick=()=>{remember();zsel.forEach(i=>S.segs[i].zLayer=Math.min(3,(S.segs[i].zLayer||0)+1));edited();};
+$('layDn').onclick=()=>{remember();zsel.forEach(i=>S.segs[i].zLayer=Math.max(0,(S.segs[i].zLayer||0)-1));edited();};
+$('layoutName').onchange=()=>{dirty=true;edited();};
+addEventListener('keydown',e=>{const typing=/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'');
+  if(e.key==='Escape'){pen=false;sel=null;zsel.clear();$('hint').className='hint';render();}
+  if((e.key==='Delete'||e.key==='Backspace')&&sel!==null&&!typing)$('segDelete').onclick();});
+
+// ---- file ----
+function importText(text){try{take(JSON.parse(text),'File imported');dirty=true;}catch(e){notice(e instanceof SyntaxError?'Not valid JSON.':e.message,true);}}
+$('load').onclick=()=>importText($('json').value);
+$('import').onclick=()=>$('file').click();
+$('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>131072)throw Error('File too large: 128 KB at most.');importText(await f.text());}catch(err){notice(err.message,true);}finally{e.target.value='';}};
+$('download').onclick=()=>{const blob=new Blob([JSON.stringify(exportDoc(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tizenhalo-layout.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);notice('JSON downloaded · keep it as a backup');};
+// the clipboard API needs a secure page, which a TV address on the home network is not: fall back to selecting the text
+$('copy').onclick=()=>{const ta=$('json');const fallback=()=>{ta.focus();ta.select();notice('Text selected · copy it with Ctrl/Cmd+C');};
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(ta.value).then(()=>notice('Copied to the clipboard'),fallback);else fallback();};
+
+// ---- TV ----
 async function api(path,options){const r=await fetch(path,options),j=await r.json();if(!r.ok)throw Error(j.error||'Request failed');return j;}
-async function load(){try{if(dirty&&!confirm('Reload from the TV and discard local changes?'))return;const next=valid(await api('/api/layout'));doc=next;selected=0;history=[];dirty=false;cancelSegment();fit();notice('Layout loaded from the TV');}catch(e){notice(e.message,true);}}
-$('load').onclick=load;
-$('apply').onclick=async()=>{const button=$('apply');button.disabled=true;try{const clean=valid(doc);await api('/api/layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(clean)});if(JSON.stringify(valid(doc))===JSON.stringify(clean)){dirty=false;notice('Layout saved to the TV · applied from the next frame');}else notice('Layout sent. There are more local changes to apply.');}catch(e){notice(e.message,true);}finally{button.disabled=offline;}};
+async function reload(){if(dirty&&!confirm('Reload from the TV and discard local changes?'))return;
+  try{take(await api('/api/layout'),'Layout loaded from the TV');dirty=false;}catch(e){notice(e.message,true);}}
+$('reload').onclick=reload;
+$('apply').onclick=async()=>{const p=problem();if(p){notice(p,true);return;}$('apply').disabled=true;
+  try{await api('/api/layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(exportDoc())});dirty=false;notice('Layout saved to the TV · applied from the next frame');}
+  catch(e){notice(e.message,true);}finally{$('apply').disabled=offline||!!problem();}};
 addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
-window.LayoutEditor={valid,frame,segment,point,getDocument:()=>JSON.parse(JSON.stringify(doc))};
-if(offline){$('load').disabled=true;$('back').classList.add('hidden');$('offline').textContent='Offline editor: import, edit and download the JSON. To apply it, open /layout at the TV address.';doc=frame([30,18,30,18]);render();notice('Offline editor · export the JSON when you are done');}else load();
+
+window.LayoutEditor={exportDoc,adopt,studioFrom,fromLeds,dragMove,problem,importText,total,previewHex,select:i=>{sel=i;render();},state:()=>JSON.parse(JSON.stringify(S))};
+S=frameTV();
+if(offline){$('reload').disabled=true;$('back').hidden=true;$('offline').textContent='Offline editor: import, edit and download the JSON. To apply it, open /layout at the TV address.';render();notice('Offline editor · download the JSON when you are done');}
+else{render();reload();}
 </script></html>

@@ -132,7 +132,7 @@ namespace TizenAmbilight
                         status["settings_error"]=LocalSettings.Error;
                         Reply(stream,200,Json.ToJson(status)); return;
                     }
-                    if(request[0]=="POST"&&(path=="/api/settings"||path=="/api/layout"))
+                    if(request[0]=="POST"&&(path=="/api/settings"||path=="/api/layout"||path=="/api/preview"))
                     {
                         string length,type;
                         int n;
@@ -142,6 +142,17 @@ namespace TizenAmbilight
                         byte[] body=new byte[n]; int got=0;
                         while(got<n) { int take=stream.Read(body,got,n-got); if(take==0) throw new IOException("Incomplete body"); got+=take; }
                         string json=Encoding.UTF8.GetString(body);
+                        if(path=="/api/preview") {
+                            // LED Studio live preview: {"rgb":"rrggbb…"} shows a frame, {"off":true} ends it at once
+                            var req=ConfigFile.ParseDocument(json) as Dictionary<string,object>;object v;
+                            if(req==null)throw new ArgumentException("A JSON object is required");
+                            if(req.TryGetValue("off",out v)&&v is bool&&(bool)v)LivePreview.Stop();
+                            else if(req.TryGetValue("rgb",out v)&&v is string)LivePreview.Set((string)v,LivePreview.NowMs());
+                            else throw new ArgumentException("Preview: send rgb or off");
+                            var now=LocalSettings.Snapshot();
+                            bool lights=(bool)now["outputEnabled"]&&((string)now["wledIp"]).Length>0;
+                            Reply(stream,200,Json.ToJson(new Dictionary<string,object>{{"ok",true},{"lights",lights}}));return;
+                        }
                         if(path=="/api/layout") {
                             var doc=CustomLayout.Parse(json);
                             LocalSettings.Save(new Dictionary<string,object>{{"layoutMode","custom"},{"ledLayout",Json.ToJson(doc)},

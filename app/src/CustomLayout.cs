@@ -37,7 +37,53 @@ namespace TizenAmbilight
                 }
                 leds.Add(clean);
             }
-            return new Dictionary<string,object>{{"schema",1},{"name",name},{"leds",leds}};
+            var result=new Dictionary<string,object>{{"schema",1},{"name",name},{"leds",leds}};
+            // The LED Studio drawing rides along so the editor can reopen it exactly. The TV never reads it,
+            // and it is dropped (not rejected) when it does not describe this LED list.
+            object studio;
+            if(doc!=null&&doc.TryGetValue("studio",out studio)) { var clean=Studio(studio,leds.Count); if(clean!=null)result["studio"]=clean; }
+            return result;
+        }
+        static readonly string[] Edges={"top","right","bottom","left"};
+        static bool Finite(Dictionary<string,object> d,string key,out double n)
+        {
+            object v;n=0;
+            if(!d.TryGetValue(key,out v)||!(v is double||v is int||v is long))return false;
+            n=Convert.ToDouble(v);return !double.IsNaN(n)&&!double.IsInfinity(n);
+        }
+        static Dictionary<string,object> Studio(object value,int ledCount)
+        {
+            var st=value as Dictionary<string,object>;double version;
+            if(st==null||!Finite(st,"v",out version)||version!=1)return null;
+            object vo,so;
+            var verts=st.TryGetValue("verts",out vo)?vo as List<object>:null;
+            var segs=st.TryGetValue("segs",out so)?so as List<object>:null;
+            if(verts==null||segs==null||verts.Count<2||verts.Count>1000||segs.Count!=verts.Count-1)return null;
+            var cleanVerts=new List<object>();
+            foreach(object p in verts) {
+                var d=p as Dictionary<string,object>;double x,y;
+                if(d==null||!Finite(d,"x",out x)||!Finite(d,"y",out y)||x<-2||x>3||y<-2||y>3)return null;
+                cleanVerts.Add(new Dictionary<string,object>{{"x",Math.Round(x,4)},{"y",Math.Round(y,4)}});
+            }
+            var cleanSegs=new List<object>();int total=0;
+            foreach(object s in segs) {
+                var d=s as Dictionary<string,object>;object type;
+                if(d==null||!d.TryGetValue("type",out type))return null;
+                if((type as string)=="link") { cleanSegs.Add(new Dictionary<string,object>{{"type","link"},{"leds",0}}); continue; }
+                double count,layer,from,to,depth;object edge;
+                if((type as string)!="led"||!Finite(d,"leds",out count)||count<1||count>490||count!=Math.Truncate(count))return null;
+                if(!Finite(d,"zLayer",out layer))layer=0;
+                var clean=new Dictionary<string,object>{{"type","led"},{"leds",(int)count},{"zLayer",(int)Math.Max(0,Math.Min(3,Math.Round(layer)))}};
+                if(d.TryGetValue("zEdge",out edge)&&edge is string&&Array.IndexOf(Edges,(string)edge)>=0&&
+                   Finite(d,"zFrom",out from)&&Finite(d,"zTo",out to)&&Finite(d,"zDepth",out depth)&&from>=0&&to<=1&&to>from&&depth>0&&depth<=.5) {
+                    clean["zEdge"]=edge;clean["zFrom"]=Math.Round(from,4);clean["zTo"]=Math.Round(to,4);clean["zDepth"]=Math.Round(depth,4);
+                }
+                total+=(int)count;cleanSegs.Add(clean);
+            }
+            if(total!=ledCount)return null;
+            object reversed;
+            return new Dictionary<string,object>{{"v",1},{"verts",cleanVerts},{"segs",cleanSegs},
+                {"reversed",st.TryGetValue("reversed",out reversed)&&reversed is bool&&(bool)reversed}};
         }
         static double Number(object value,string key)
         {

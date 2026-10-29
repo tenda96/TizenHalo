@@ -68,13 +68,19 @@ the strip continues counter-clockwise from there, enable `mapReverse`.
 If the colors come out mirrored, toggle `mapReverse`; if they are shifted along the frame, adjust
 `mapOffset`. For anything irregular, the layout editor is easier.
 
-## Layout editor
+## Layout editor (LED Studio)
 
-Open `http://<tv-ip>:8793/layout`. You can generate a frame (LEDs per side, starting corner, direction),
-draw extra segments (for example under a TV stand), move each LED's color zone and import or export the
-layout as JSON. **Apply to TV** saves it and switches `layoutMode` to `custom`.
+Open `http://<tv-ip>:8793/layout`. Draw the strip point by point with the pen as it is mounted: each
+stretch between two points is a segment, either LEDs (with a count) or a connection that only carries the
+cable, for example down to a TV stand. Choose which end is LED 0 and the direction. On the right, each LED
+segment is a block docked to the TV edge it takes its color from: drag it along the edge or outwards to
+another row, widen it, set its depth, several at once. **Overlaps** shows the pixels each segment samples.
 
-The editor also works offline: open `app/res/Layout.html` in a browser, then import the exported file
+**Live on strip** shows the drawing on the real strip while you edit (selected segment bright, LED 0
+white) instead of the picture; it is off when you open the page and ends a few seconds after you switch it
+off or leave. Nothing is saved until **Apply to TV**, which switches `layoutMode` to `custom`.
+
+The editor also works offline: open `app/res/Layout.html` in a browser, then import the downloaded file
 on the TV later.
 
 ### Layout file format
@@ -95,6 +101,9 @@ on the TV later.
 - `x`, `y` (optional): where the LED is mounted, for the editor's preview only. `y` greater than 1 is
   below the screen.
 - 4 to 490 LEDs. A plain HyperHDR LED array (without `schema` and `name`) is accepted on import.
+- `studio` (optional): the LED Studio drawing, so the editor reopens the layout exactly. The TV keeps it but
+  never reads it; it is dropped when it no longer describes the `leds` list, which always wins. Files
+  without it are rebuilt into segments on import.
 
 ## Install-time keys (`config.json`)
 
